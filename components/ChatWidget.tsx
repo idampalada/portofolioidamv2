@@ -79,14 +79,10 @@ useEffect(() => {
 
   // ================= SEND MESSAGE =================
   const sendMessage = async () => {
-if (!name || !email) {
+if ((!name || !email) && messages.length === 0) {
   alert("Mohon isi nama dan email terlebih dahulu.");
   return;
 }
-
-// simpan ke localStorage
-localStorage.setItem("chat_name", name);
-localStorage.setItem("chat_email", email);
 
     if (!input.trim()) return;
 
