@@ -174,7 +174,7 @@ md:skew-y-[1deg]
               <div className="absolute inset-0 bg-gradient-to-t from-purple-900/30 to-transparent z-10" />
 
               <Image
-                src="/idamkemejahitam.png"
+                src="/idampurple.jpg"
                 alt="Idam Palada"
                 fill
                 className="object-cover"
