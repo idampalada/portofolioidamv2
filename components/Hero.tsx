@@ -1,207 +1,265 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { Github, Linkedin, Instagram, Phone } from "lucide-react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 
 gsap.registerPlugin(ScrollTrigger);
 
-export default function Hero() {
-  const texts = ["Fullstack Developer", "Backend Engineer", "UI/UX Design"];
-  const [textIndex, setTextIndex] = useState(0);
-  const [displayedText, setDisplayedText] = useState("");
-  const [isDeleting, setIsDeleting] = useState(false);
+/* ─── SPLIT TEXT UTILITY ─────────────────────────────── */
+function SplitChars({
+  text,
+  className,
+  style,
+}: {
+  text: string;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <span className={className} style={{ ...style, display: "block" }}>
+      {text.split("").map((char, i) => (
+        <span
+          key={i}
+          className="split-char"
+          style={{ display: "inline-block" }}
+        >
+          {char === " " ? "\u00A0" : char}
+        </span>
+      ))}
+    </span>
+  );
+}
 
-  const sectionRef = useRef<HTMLElement>(null);
-  const hiTextRef = useRef<HTMLSpanElement>(null);
-  const greetingRef = useRef<HTMLParagraphElement>(null);
-  const nameRef = useRef<HTMLHeadingElement>(null);
-  const typingRef = useRef<HTMLHeadingElement>(null);
-  const descRef = useRef<HTMLParagraphElement>(null);
-  const ctaRef = useRef<HTMLDivElement>(null);
-  const imageCardRef = useRef<HTMLDivElement>(null);
-  const bottomTextRef = useRef<HTMLParagraphElement>(null);
-  const statsRef = useRef<HTMLDivElement>(null);
-  const clientsRef = useRef<HTMLDivElement>(null);
-  const glow1Ref = useRef<HTMLDivElement>(null);
-  const glow2Ref = useRef<HTMLDivElement>(null);
+/* ─── MAGNETIC BUTTON ────────────────────────────────── */
+function MagneticButton({
+  children,
+  className,
+  onClick,
+  strength = 0.4,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  onClick?: () => void;
+  strength?: number;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 200, damping: 20 });
+  const springY = useSpring(y, { stiffness: 200, damping: 20 });
 
-  /* ── TYPING EFFECT ── */
-  useEffect(() => {
-    const currentText = texts[textIndex];
-    const typingSpeed = isDeleting ? 50 : 100;
-    const pauseTime = 1500;
-    const timeout = setTimeout(() => {
-      if (!isDeleting) {
-        setDisplayedText(currentText.substring(0, displayedText.length + 1));
-        if (displayedText === currentText)
-          setTimeout(() => setIsDeleting(true), pauseTime);
-      } else {
-        setDisplayedText(currentText.substring(0, displayedText.length - 1));
-        if (displayedText === "") {
-          setIsDeleting(false);
-          setTextIndex((p) => (p + 1) % texts.length);
-        }
-      }
-    }, typingSpeed);
-    return () => clearTimeout(timeout);
-  }, [displayedText, isDeleting, textIndex]);
-
-  /* ── COUNTER ── */
-  const animateCounters = () => {
-    document
-      .querySelectorAll<HTMLElement>(".hero-stat-number")
-      .forEach((el) => {
-        const raw = el.dataset.target ?? "0";
-        const isPercent = raw.includes("%");
-        const target = parseInt(raw);
-        const obj = { val: 0 };
-        gsap.to(obj, {
-          val: target,
-          duration: 1.6,
-          ease: "power2.out",
-          onUpdate: () => {
-            el.textContent = Math.round(obj.val) + (isPercent ? "%" : "+");
-          },
-        });
-      });
+  const handleMove = (e: React.MouseEvent) => {
+    const rect = ref.current!.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    x.set((e.clientX - cx) * strength);
+    y.set((e.clientY - cy) * strength);
   };
 
-  /* ── GSAP ── */
+  const handleLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <div
+      ref={ref}
+      onMouseMove={handleMove}
+      onMouseLeave={handleLeave}
+      style={{ display: "inline-block" }}
+    >
+      <motion.div style={{ x: springX, y: springY }}>
+        <button className={className} onClick={onClick}>
+          {children}
+        </button>
+      </motion.div>
+    </div>
+  );
+}
+
+/* ─── ANIMATED COUNTER ───────────────────────────────── */
+function AnimatedCounter({
+  target,
+  suffix,
+}: {
+  target: number;
+  suffix: string;
+}) {
+  const [value, setValue] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const started = useRef(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !started.current) {
+          started.current = true;
+          const obj = { val: 0 };
+          gsap.to(obj, {
+            val: target,
+            duration: 2,
+            ease: "power3.out",
+            onUpdate: () => setValue(Math.round(obj.val)),
+          });
+        }
+      },
+      { threshold: 0.5 },
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [target]);
+
+  return (
+    <span ref={ref} className="tabular-nums">
+      {value}
+      {suffix}
+    </span>
+  );
+}
+
+/* ─── NOISE OVERLAY ──────────────────────────────────── */
+function NoiseTexture() {
+  return (
+    <svg
+      className="absolute inset-0 w-full h-full opacity-[0.035] pointer-events-none"
+      style={{ zIndex: 1 }}
+    >
+      <filter id="noise">
+        <feTurbulence
+          type="fractalNoise"
+          baseFrequency="0.65"
+          numOctaves="3"
+          stitchTiles="stitch"
+        />
+        <feColorMatrix type="saturate" values="0" />
+      </filter>
+      <rect width="100%" height="100%" filter="url(#noise)" />
+    </svg>
+  );
+}
+
+/* ─── HERO ───────────────────────────────────────────── */
+export default function Hero() {
+  const roles = ["Fullstack Developer", "Backend Engineer", "UI/UX Designer"];
+  const [roleIdx, setRoleIdx] = useState(0);
+  const [typed, setTyped] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  const sectionRef = useRef<HTMLElement>(null);
+  const nameLineRef = useRef<HTMLDivElement>(null);
+  const greetingRef = useRef<HTMLParagraphElement>(null);
+  const roleRef = useRef<HTMLDivElement>(null);
+  const descRef = useRef<HTMLParagraphElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+  const orbitRef = useRef<HTMLDivElement>(null);
+  const lineRef = useRef<HTMLDivElement>(null);
+
+  /* Typing effect */
+  useEffect(() => {
+    const cur = roles[roleIdx];
+    const speed = deleting ? 40 : 90;
+    const t = setTimeout(() => {
+      if (!deleting) {
+        const next = cur.slice(0, typed.length + 1);
+        setTyped(next);
+        if (next === cur) setTimeout(() => setDeleting(true), 1800);
+      } else {
+        const next = cur.slice(0, typed.length - 1);
+        setTyped(next);
+        if (next === "") {
+          setDeleting(false);
+          setRoleIdx((i) => (i + 1) % roles.length);
+        }
+      }
+    }, speed);
+    return () => clearTimeout(t);
+  }, [typed, deleting, roleIdx]);
+
+  /* GSAP entrance */
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // ── above-fold entrance (no scrollTrigger) ──
-      gsap.set([greetingRef.current, descRef.current], { opacity: 0, y: 24 });
-      gsap.set(nameRef.current, { opacity: 0, clipPath: "inset(0 100% 0 0)" });
-      gsap.set(typingRef.current, { opacity: 0, y: 16 });
+      const chars = nameLineRef.current?.querySelectorAll(".split-char") ?? [];
+
+      gsap.set(chars, { y: "100%", opacity: 0 });
+      gsap.set(greetingRef.current, { opacity: 0, x: -30 });
+      gsap.set(roleRef.current, { opacity: 0, y: 20 });
+      gsap.set(descRef.current, { opacity: 0, y: 24 });
       gsap.set(ctaRef.current, { opacity: 0, y: 20 });
-      gsap.set(imageCardRef.current, { opacity: 0, x: 60, rotateY: 15 });
-      gsap.set(hiTextRef.current, { opacity: 0, scale: 1.3 });
-      gsap.set(".hero-social-icon", { opacity: 0, scale: 0.5, y: 10 });
+      gsap.set(imgRef.current, { opacity: 0, scale: 0.85, rotateY: 20 });
+      gsap.set(lineRef.current, { scaleX: 0, transformOrigin: "left" });
 
-      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-      tl.to(
-        hiTextRef.current,
-        { opacity: 1, scale: 1, duration: 1.4, ease: "expo.out" },
-        0,
-      );
-      tl.to(
-        [glow1Ref.current, glow2Ref.current],
-        { opacity: 1, duration: 2 },
-        0.1,
-      );
-      tl.to(greetingRef.current, { opacity: 1, y: 0, duration: 0.6 }, 0.4);
-      tl.to(
-        nameRef.current,
-        {
-          opacity: 1,
-          clipPath: "inset(0 0% 0 0)",
-          duration: 0.9,
-          ease: "expo.out",
-        },
-        0.7,
-      );
-      tl.to(typingRef.current, { opacity: 1, y: 0, duration: 0.5 }, 1.0);
-      tl.to(descRef.current, { opacity: 1, y: 0, duration: 0.6 }, 1.2);
-      tl.to(
-        ctaRef.current,
-        { opacity: 1, y: 0, duration: 0.6, ease: "back.out(1.4)" },
-        1.4,
-      );
-      tl.to(
-        imageCardRef.current,
-        { opacity: 1, x: 0, rotateY: 0, duration: 1.1, ease: "expo.out" },
-        0.6,
-      );
-      tl.to(
-        ".hero-social-icon",
-        {
-          opacity: 1,
-          scale: 1,
-          y: 0,
-          stagger: 0.09,
-          duration: 0.45,
-          ease: "back.out(2)",
-        },
-        1.55,
-      );
+      const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
 
-      // ── bottom section: REPEATING scroll trigger ──
-      gsap.set([bottomTextRef.current, statsRef.current, clientsRef.current], {
+      tl.to(greetingRef.current, { opacity: 1, x: 0, duration: 0.8 }, 0.2)
+        .to(
+          lineRef.current,
+          { scaleX: 1, duration: 0.6, ease: "power4.out" },
+          0.35,
+        )
+        .to(
+          chars,
+          {
+            y: "0%",
+            opacity: 1,
+            stagger: 0.035,
+            duration: 0.9,
+            ease: "expo.out",
+          },
+          0.5,
+        )
+        .to(roleRef.current, { opacity: 1, y: 0, duration: 0.6 }, 1.1)
+        .to(descRef.current, { opacity: 1, y: 0, duration: 0.7 }, 1.3)
+        .to(
+          ctaRef.current,
+          { opacity: 1, y: 0, duration: 0.6, ease: "back.out(1.5)" },
+          1.5,
+        )
+        .to(
+          imgRef.current,
+          {
+            opacity: 1,
+            scale: 1,
+            rotateY: 0,
+            duration: 1.4,
+            ease: "expo.out",
+          },
+          0.4,
+        );
+
+      /* Floating orbit */
+      gsap.to(orbitRef.current, {
+        rotate: 360,
+        duration: 28,
+        ease: "none",
+        repeat: -1,
+      });
+
+      /* Floating image */
+      gsap.to(imgRef.current, {
+        y: -16,
+        duration: 4,
+        ease: "sine.inOut",
+        yoyo: true,
+        repeat: -1,
+        delay: 2,
+      });
+
+      /* Scroll-based stats reveal */
+      gsap.from(statsRef.current, {
         opacity: 0,
-        y: 20,
-      });
-
-      gsap.to(bottomTextRef.current, {
-        opacity: 1,
-        y: 0,
-        duration: 0.6,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: bottomTextRef.current,
-          start: "top 88%",
-          end: "top 20%",
-          toggleActions: "play reverse play reverse",
-        },
-      });
-
-      gsap.to(statsRef.current, {
-        opacity: 1,
-        y: 0,
-        duration: 0.65,
+        y: 40,
+        duration: 0.8,
         ease: "power3.out",
         scrollTrigger: {
           trigger: statsRef.current,
           start: "top 88%",
-          end: "top 20%",
-          toggleActions: "play reverse play reverse",
-          onEnter: animateCounters,
-          onEnterBack: animateCounters,
-        },
-      });
-
-      gsap.to(clientsRef.current, {
-        opacity: 1,
-        y: 0,
-        duration: 0.55,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: clientsRef.current,
-          start: "top 88%",
-          end: "top 20%",
-          toggleActions: "play reverse play reverse",
-        },
-      });
-
-      // ── floating image loop ──
-      gsap.to(imageCardRef.current, {
-        y: -10,
-        duration: 3.8,
-        ease: "sine.inOut",
-        yoyo: true,
-        repeat: -1,
-        delay: 1.8,
-      });
-
-      // ── glow parallax scrub ──
-      gsap.to(glow1Ref.current, {
-        y: -120,
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top top",
-          end: "bottom top",
-          scrub: true,
-        },
-      });
-      gsap.to(glow2Ref.current, {
-        y: -60,
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top top",
-          end: "bottom top",
-          scrub: true,
+          toggleActions: "play none none reverse",
         },
       });
     }, sectionRef);
@@ -209,214 +267,372 @@ export default function Hero() {
     return () => ctx.revert();
   }, []);
 
-  /* ── MAGNETIC HOVER ── */
-  const handleImgMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  /* Image magnetic */
+  const imgX = useMotionValue(0);
+  const imgY = useMotionValue(0);
+  const imgSpringX = useSpring(imgX, { stiffness: 120, damping: 22 });
+  const imgSpringY = useSpring(imgY, { stiffness: 120, damping: 22 });
+
+  const handleImgMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    gsap.to(imageCardRef.current, {
-      x: (e.clientX - (rect.left + rect.width / 2)) * 0.05,
-      y: (e.clientY - (rect.top + rect.height / 2)) * 0.05,
-      duration: 0.4,
-      ease: "power2.out",
-    });
+    imgX.set((e.clientX - (rect.left + rect.width / 2)) * 0.06);
+    imgY.set((e.clientY - (rect.top + rect.height / 2)) * 0.06);
   };
-  const handleImgMouseLeave = () => {
-    gsap.to(imageCardRef.current, {
-      x: 0,
-      y: 0,
-      duration: 0.8,
-      ease: "elastic.out(1,0.5)",
-    });
+  const handleImgLeave = () => {
+    imgX.set(0);
+    imgY.set(0);
   };
 
   return (
-    <>
-      <style>{`.hero-social-icon{opacity:0}.hero-cv-btn:hover{background:rgba(157,128,200,0.12)!important}`}</style>
+    <section
+      id="hero"
+      ref={sectionRef}
+      className="relative min-h-screen overflow-hidden"
+    >
+      {/* ── BACKGROUND ── */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-[#0C0512]" />
+        {/* Gradient blobs */}
+        <div
+          className="absolute top-[-10%] right-[5%] w-[700px] h-[700px] rounded-full opacity-20"
+          style={{
+            background:
+              "radial-gradient(circle, #7B3FF2 0%, #4B1FA8 40%, transparent 70%)",
+            filter: "blur(80px)",
+          }}
+        />
+        <div
+          className="absolute bottom-[-15%] left-[-5%] w-[500px] h-[500px] rounded-full opacity-10"
+          style={{
+            background:
+              "radial-gradient(circle, #C084FC 0%, #7C3AED 50%, transparent 70%)",
+            filter: "blur(100px)",
+          }}
+        />
+        <div
+          className="absolute top-[40%] left-[30%] w-[300px] h-[300px] rounded-full opacity-8"
+          style={{
+            background: "radial-gradient(circle, #A855F7 0%, transparent 60%)",
+            filter: "blur(60px)",
+          }}
+        />
+        <NoiseTexture />
+        {/* Grid lines */}
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, #a855f7 1px, transparent 1px), linear-gradient(to bottom, #a855f7 1px, transparent 1px)",
+            backgroundSize: "80px 80px",
+          }}
+        />
+      </div>
 
-      <section
-        id="hero"
-        ref={sectionRef}
-        className="relative md:min-h-screen overflow-hidden"
-      >
-        {/* BACKGROUND */}
-        <div className="absolute inset-0 -z-30">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#1a0b2e] via-[#16082b] to-[#14062B]" />
-          <div
-            ref={glow1Ref}
-            className="hidden md:block absolute top-1/2 right-[20%] -translate-y-1/2 w-[1000px] h-[1000px] bg-purple-600/15 rounded-full blur-[150px]"
-            style={{ opacity: 0 }}
-          />
-          <div
-            ref={glow2Ref}
-            className="hidden md:block absolute bottom-0 left-0 w-[600px] h-[600px] bg-purple-900/10 rounded-full blur-[120px]"
-            style={{ opacity: 0 }}
-          />
-        </div>
+      {/* ── CONTENT ── */}
+      <div className="max-w-[1320px] mx-auto px-6 md:px-10 lg:px-16">
+        <div className="grid grid-cols-12 gap-8 lg:gap-0 items-center min-h-screen py-24 md:py-0">
+          {/* LEFT */}
+          <div className="col-span-12 lg:col-span-6 z-10">
+            {/* Greeting */}
+            <p
+              ref={greetingRef}
+              className="flex items-center gap-3 text-purple-400 text-sm font-medium tracking-[0.2em] uppercase mb-6"
+              style={{ opacity: 0 }}
+            >
+              <span
+                ref={lineRef}
+                className="inline-block h-px w-10 bg-purple-500"
+                style={{ transformOrigin: "left" }}
+              />
+              Hi, I'm
+            </p>
 
-        {/* "HI" BG TEXT */}
-        <div className="absolute inset-0 flex items-center justify-center -z-10 pointer-events-none overflow-hidden">
-          <span
-            ref={hiTextRef}
-            className="text-[200px] md:text-[280px] lg:text-[380px] font-bold tracking-tighter select-none leading-none"
-            style={{
-              color: "transparent",
-              WebkitTextStroke: "1px rgba(255,255,255,0.03)",
-              opacity: 0,
-            }}
-          >
-            HI
-          </span>
-        </div>
-
-        {/* CONTENT */}
-        <div className="max-w-[1280px] mx-auto px-6 md:px-8 lg:px-12 w-full">
-          <div className="grid grid-cols-12 gap-8 lg:gap-12 items-center min-h-[calc(100vh-64px)] pt-8 md:pt-0">
-            {/* LEFT */}
-            <div className="col-span-12 lg:col-span-6 z-10 text-center lg:text-left">
-              <p
-                ref={greetingRef}
-                className="text-purple-400 mb-3 md:mb-4 text-sm font-medium tracking-wide"
-                style={{ opacity: 0 }}
-              >
-                Hi, I'm
-              </p>
-
-              <h1
-                ref={nameRef}
-                className="text-4xl md:text-5xl lg:text-6xl leading-tight font-bold mb-2 md:mb-3 text-white"
-                style={{ opacity: 0, clipPath: "inset(0 100% 0 0)" }}
-              >
-                Idam Palada
-              </h1>
-
-              <h2
-                ref={typingRef}
-                className="text-3xl md:text-4xl lg:text-5xl leading-tight font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-purple-300 to-purple-400 mb-6 md:mb-8"
-                style={{ opacity: 0 }}
-              >
-                {displayedText}
-                <span className="md:animate-pulse text-purple-300">|</span>
-              </h2>
-
-              <p
-                ref={descRef}
-                className="text-gray-400 max-w-[520px] mx-auto lg:mx-0 text-sm md:text-base leading-relaxed mb-8 md:mb-10 px-4 md:px-0"
-                style={{ opacity: 0 }}
-              >
-                I build scalable, high-performance web applications with clean
-                architecture and great user experience.
-              </p>
-
-              <div
-                ref={ctaRef}
-                className="flex items-center justify-center lg:justify-start gap-4 md:gap-6 flex-wrap"
-                style={{ opacity: 0 }}
-              >
-                <button className="hero-cv-btn px-6 md:px-8 py-3 md:py-3.5 rounded-full border-2 border-[#9D80C8]/40 text-[#9D80C8] text-sm font-semibold hover:border-[#9D80C8]/60 transition-all duration-300">
-                  Download CV
-                </button>
-                <div className="flex items-center gap-2 md:gap-3">
-                  {[
-                    { href: "https://github.com/idampalada", icon: Github },
-                    {
-                      href: "https://linkedin.com/in/idam-palada",
-                      icon: Linkedin,
-                    },
-                    {
-                      href: "https://instagram.com/idam.palada",
-                      icon: Instagram,
-                    },
-                    { href: "https://wa.me/6281287809468", icon: Phone },
-                  ].map(({ href, icon: Icon }, i) => (
-                    <a
-                      key={i}
-                      href={href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hero-social-icon w-10 md:w-11 h-10 md:h-11 flex items-center justify-center rounded-full border border-[#9D80C8]/40 text-[#9D80C8] hover:bg-[#9D80C8]/15 hover:border-[#9D80C8]/60 transition"
-                    >
-                      <Icon size={18} className="text-[#9D80C8]" />
-                    </a>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* RIGHT IMAGE */}
-            <div className="col-span-12 lg:col-span-6 flex justify-center lg:justify-end z-10 mt-8 lg:mt-0">
-              <div
-                ref={imageCardRef}
-                className="relative w-[280px] md:w-[340px] lg:w-[380px] h-[360px] md:h-[440px] lg:h-[480px] rounded-[30px] md:rounded-[40px] overflow-hidden border-2 border-[#9D80C8]/40 shadow-lg md:shadow-[0_20px_100px_rgba(157,128,200,0.35)] md:rotate-[6deg] md:skew-y-[1deg] transition-[rotate,skew] duration-500 hover:rotate-[2deg] hover:skew-y-0 cursor-pointer"
-                style={{ opacity: 0 }}
-                onMouseMove={handleImgMouseMove}
-                onMouseLeave={handleImgMouseLeave}
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-purple-900/30 to-transparent z-10" />
-                <Image
-                  src="/idampurple.jpg"
-                  alt="Idam Palada"
-                  fill
-                  className="object-cover"
-                  priority
+            {/* Name — clip-path reveal per char */}
+            <div
+              className="overflow-hidden mb-1"
+              style={{ clipPath: "inset(0 0 0 0)" }}
+            >
+              <div ref={nameLineRef}>
+                <SplitChars
+                  text="Idam Palada"
+                  className="text-[clamp(52px,8vw,96px)] font-black leading-[0.92] tracking-tight text-white"
                 />
               </div>
             </div>
-          </div>
 
-          {/* BOTTOM INFO */}
-          <div className="mt-6 md:mt-2 max-w-[1100px] mx-auto pb-4 md:pb-0">
-            <p
-              ref={bottomTextRef}
-              className="mt-8 md:mt-12 mb-8 md:mb-10 text-center lg:text-left lg:ml-0 text-gray-300 text-sm md:text-base px-4 md:px-0"
-              style={{ opacity: 0 }}
-            >
-              I help businesses or individuals build reliable web solutions.
-              Here are some of our recent projects.
-            </p>
-
+            {/* Typing role */}
             <div
-              ref={statsRef}
-              className="flex items-center justify-center lg:justify-between flex-wrap gap-8 md:gap-12 px-4 md:px-0"
+              ref={roleRef}
+              className="mb-8 mt-3 min-h-[3rem] flex items-center"
               style={{ opacity: 0 }}
             >
-              {[
-                { target: "2+", label1: "Years of", label2: "Experience" },
-                {
-                  target: "99%",
-                  label1: "Client Satisfaction",
-                  label2: "Rate",
-                },
-                { target: "5+", label1: "Project", label2: "Complete" },
-              ].map(({ target, label1, label2 }) => (
-                <div key={label1} className="flex items-center gap-3 md:gap-4">
-                  <span
-                    className="hero-stat-number text-4xl md:text-5xl font-bold text-white"
-                    data-target={target}
-                  >
-                    {target}
-                  </span>
-                  <div className="leading-tight">
-                    <p className="text-xs md:text-sm text-gray-400">{label1}</p>
-                    <p className="text-xs md:text-sm text-gray-400">{label2}</p>
-                  </div>
-                </div>
-              ))}
+              <span className="text-[clamp(18px,3vw,28px)] font-light tracking-wide bg-gradient-to-r from-purple-300 via-fuchsia-300 to-purple-400 bg-clip-text text-transparent">
+                {typed}
+                <span className="text-purple-300 animate-pulse">|</span>
+              </span>
             </div>
 
-            <div
-              ref={clientsRef}
-              className="mt-6 md:mt-8 text-center lg:text-left px-4 md:px-0"
+            {/* Description */}
+            <p
+              ref={descRef}
+              className="text-gray-400 text-base md:text-lg leading-relaxed max-w-[480px] mb-10"
               style={{ opacity: 0 }}
             >
-              <p className="mt-4 md:mt-6 lg:ml-0 text-xs md:text-sm text-gray-400">
-                <span className="text-gray-300 font-medium">
-                  Our happy clients:
-                </span>{" "}
-                Sneakersflash, COA, KJM, PUPR, dll
-              </p>
+              I architect scalable web systems with obsessive attention to
+              performance and user experience. Clean code, sharp design.
+            </p>
+
+            {/* CTA */}
+            <div
+              ref={ctaRef}
+              className="flex items-center gap-4 flex-wrap"
+              style={{ opacity: 0 }}
+            >
+              <MagneticButton
+                className="group relative px-8 py-4 rounded-full bg-purple-600 text-white text-sm font-semibold overflow-hidden transition-all duration-300 hover:bg-purple-500 hover:shadow-[0_0_40px_rgba(168,85,247,0.5)]"
+                strength={0.35}
+              >
+                <span className="relative z-10">Download CV</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-fuchsia-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              </MagneticButton>
+
+              <MagneticButton
+                className="px-8 py-4 rounded-full border border-purple-500/40 text-purple-300 text-sm font-semibold hover:border-purple-400/70 hover:text-purple-200 hover:bg-purple-500/10 transition-all duration-300"
+                strength={0.3}
+              >
+                View Work
+              </MagneticButton>
+
+              {/* Social icons */}
+              <div className="flex items-center gap-2 ml-1">
+                {[
+                  { href: "https://github.com/idampalada", icon: Github },
+                  {
+                    href: "https://linkedin.com/in/idam-palada",
+                    icon: Linkedin,
+                  },
+                  {
+                    href: "https://instagram.com/idam.palada",
+                    icon: Instagram,
+                  },
+                  { href: "https://wa.me/6281287809468", icon: Phone },
+                ].map(({ href, icon: Icon }, i) => (
+                  <motion.a
+                    key={i}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    whileHover={{ scale: 1.15, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                    className="w-10 h-10 flex items-center justify-center rounded-full border border-purple-500/30 text-purple-400 hover:border-purple-400/60 hover:bg-purple-500/15 hover:text-purple-300 transition-colors duration-200"
+                  >
+                    <Icon size={16} />
+                  </motion.a>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT — Image */}
+          <div className="col-span-12 lg:col-span-6 flex justify-center lg:justify-end z-10 mt-16 lg:mt-0">
+            <div
+              className="relative"
+              onMouseMove={handleImgMove}
+              onMouseLeave={handleImgLeave}
+            >
+              {/* Orbit ring */}
+              <div
+                ref={orbitRef}
+                className="absolute inset-[-30px] rounded-full border border-dashed border-purple-500/20 pointer-events-none"
+              >
+                <div
+                  className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-purple-500"
+                  style={{ boxShadow: "0 0 12px rgba(168,85,247,0.9)" }}
+                />
+                <div
+                  className="absolute bottom-[15%] right-0 translate-x-1/2 w-2 h-2 rounded-full bg-fuchsia-400"
+                  style={{ boxShadow: "0 0 8px rgba(232,121,249,0.8)" }}
+                />
+              </div>
+              {/* Second orbit */}
+              <div
+                className="absolute inset-[-60px] rounded-full border border-purple-900/40 pointer-events-none"
+                style={{ animation: "spin-ccw 40s linear infinite" }}
+              />
+
+              <style>{`@keyframes spin-ccw { to { transform: rotate(-360deg); } }`}</style>
+
+              <motion.div
+                ref={imgRef as any}
+                style={{ x: imgSpringX, y: imgSpringY }}
+              >
+                <div
+                  className="relative w-[280px] md:w-[360px] lg:w-[400px] h-[360px] md:h-[460px] lg:h-[500px] rounded-[2.5rem] overflow-hidden cursor-pointer"
+                  style={{
+                    border: "1px solid rgba(168,85,247,0.3)",
+                    boxShadow:
+                      "0 0 0 1px rgba(168,85,247,0.1), 0 40px 120px rgba(109,40,217,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
+                    transform: "rotate(3deg)",
+                    transition: "transform 0.5s ease",
+                  }}
+                  onMouseEnter={(e) =>
+                    ((e.currentTarget as HTMLElement).style.transform =
+                      "rotate(0deg)")
+                  }
+                  onMouseLeave={(e) =>
+                    ((e.currentTarget as HTMLElement).style.transform =
+                      "rotate(3deg)")
+                  }
+                >
+                  {/* Gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0C0512]/60 via-transparent to-transparent z-10" />
+                  {/* Shimmer */}
+                  <div
+                    className="absolute inset-0 z-20 pointer-events-none"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 50%, rgba(168,85,247,0.05) 100%)",
+                    }}
+                  />
+                  <Image
+                    src="/idampurple.jpg"
+                    alt="Idam Palada"
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                  {/* Bottom label */}
+                  <div className="absolute bottom-0 left-0 right-0 z-30 p-5">
+                    <div
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs text-purple-200 backdrop-blur-md"
+                      style={{
+                        background: "rgba(109,40,217,0.3)",
+                        border: "1px solid rgba(168,85,247,0.3)",
+                      }}
+                    >
+                      <span
+                        className="w-1.5 h-1.5 rounded-full bg-green-400"
+                        style={{ boxShadow: "0 0 6px #4ade80" }}
+                      />
+                      Available for work
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Floating skill badges */}
+              <motion.div
+                className="absolute top-[10%] right-[-60px] hidden lg:block"
+                animate={{ y: [0, -8, 0] }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              >
+                <div
+                  className="px-4 py-2 rounded-2xl text-xs text-purple-200 backdrop-blur-md whitespace-nowrap"
+                  style={{
+                    background: "rgba(30,10,60,0.7)",
+                    border: "1px solid rgba(168,85,247,0.25)",
+                    boxShadow: "0 8px 32px rgba(109,40,217,0.2)",
+                  }}
+                >
+                  ⚡ Next.js + TypeScript
+                </div>
+              </motion.div>
+              <motion.div
+                className="absolute bottom-[20%] left-[-60px] hidden lg:block"
+                animate={{ y: [0, 8, 0] }}
+                transition={{
+                  duration: 3.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: 0.5,
+                }}
+              >
+                <div
+                  className="px-4 py-2 rounded-2xl text-xs text-purple-200 backdrop-blur-md whitespace-nowrap"
+                  style={{
+                    background: "rgba(30,10,60,0.7)",
+                    border: "1px solid rgba(168,85,247,0.25)",
+                    boxShadow: "0 8px 32px rgba(109,40,217,0.2)",
+                  }}
+                >
+                  🛠 5+ Projects Shipped
+                </div>
+              </motion.div>
             </div>
           </div>
         </div>
-      </section>
-    </>
+
+        {/* ── STATS BAR ── */}
+        <div ref={statsRef} className="pb-20 md:pb-28">
+          {/* Divider */}
+          <div className="w-full h-px bg-gradient-to-r from-transparent via-purple-800/50 to-transparent mb-12" />
+
+          <div className="flex flex-col md:flex-row items-center justify-between gap-10 md:gap-0">
+            {[
+              {
+                value: 2,
+                suffix: "+",
+                label: "Years Experience",
+                sub: "Full-stack development",
+              },
+              {
+                value: 99,
+                suffix: "%",
+                label: "Client Satisfaction",
+                sub: "Across all projects",
+              },
+              {
+                value: 5,
+                suffix: "+",
+                label: "Projects Shipped",
+                sub: "From concept to launch",
+              },
+            ].map(({ value, suffix, label, sub }, i) => (
+              <div key={i} className="text-center md:text-left group">
+                <div className="text-5xl md:text-6xl font-black text-white mb-1 tabular-nums">
+                  <AnimatedCounter target={value} suffix={suffix} />
+                </div>
+                <div className="text-purple-300 font-medium text-sm mb-0.5">
+                  {label}
+                </div>
+                <div className="text-gray-600 text-xs">{sub}</div>
+              </div>
+            ))}
+
+            {/* Clients */}
+            <div className="text-center md:text-right">
+              <p className="text-gray-500 text-xs uppercase tracking-widest mb-3">
+                Trusted by
+              </p>
+              <div className="flex flex-wrap justify-center md:justify-end gap-2">
+                {["Sneakersflash", "COA", "KJM", "PUPR"].map((c) => (
+                  <span
+                    key={c}
+                    className="px-3 py-1 rounded-full text-xs text-purple-300 border border-purple-800/40 bg-purple-900/20"
+                  >
+                    {c}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Scroll indicator */}
+      <motion.div
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-gray-600"
+        animate={{ y: [0, 8, 0] }}
+        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <span className="text-[10px] tracking-[0.25em] uppercase">Scroll</span>
+        <div className="w-px h-10 bg-gradient-to-b from-purple-700 to-transparent" />
+      </motion.div>
+    </section>
   );
 }

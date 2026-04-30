@@ -2,251 +2,627 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { motion, AnimatePresence, useInView } from "framer-motion";
+import { ArrowUpRight, Play } from "lucide-react";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type TabType = "projects" | "services" | "tech";
+
+// ─── Data ─────────────────────────────────────────────────────────────────────
 
 const projects = [
   {
     id: 1,
-    desc: "Merancang dan mengembangkan platform e-commerce fashion berbasis web dengan fokus pada UX dan performa aplikasi.",
+    title: "Sneakersflash",
+    category: "E-Commerce",
+    desc: "Fashion e-commerce platform with focus on UX and application performance. End-to-end implementation from design to deployment.",
     media: "/sneakersflash.mp4",
-    type: "video",
     link: "https://sneakersflash.com/",
   },
   {
     id: 2,
-    desc: "Merancang dan mengembangkan website company profile untuk perusahaan logistik guna meningkatkan citra profesional.",
+    title: "KJM Logistic",
+    category: "Company Profile",
+    desc: "Company profile website for a logistics company, enhancing professional image and digital presence.",
     media: "/kjmlogisticc.mp4",
-    type: "video",
     link: "https://kjmlogistic.com/",
   },
   {
     id: 3,
-    desc: "Merancang, mengembangkan, dan meluncurkan microsite redeem code untuk kebutuhan kampanye digital.",
+    title: "COA Campaign",
+    category: "Microsite",
+    desc: "Redeem code microsite designed and launched for a digital marketing campaign.",
     media: "/coaa.mp4",
-    type: "video",
   },
   {
     id: 4,
-    desc: "Merancang dan mendesain website company profile laboratorium PT Chemkit Multi Guna.",
+    title: "Chemkit Multi Guna",
+    category: "Company Profile",
+    desc: "Laboratory company profile website design for PT Chemkit Multi Guna.",
     media: "/chemkit.mp4",
-    type: "video",
     link: "https://chemkitmultiguna.com/",
   },
   {
     id: 5,
-    desc: "Mengembangkan dan memelihara aplikasi shortlink dengan monitoring keamanan sistem.",
+    title: "Shortlink System",
+    category: "Internal Tool",
+    desc: "URL shortening application with integrated security monitoring and analytics.",
     media: "/shortlink.mp4",
-    type: "video",
   },
   {
     id: 6,
-    desc: "Mengembangkan sistem manajemen aset termasuk integrasi perangkat IoT.",
+    title: "Asset Management",
+    category: "Enterprise App",
+    desc: "Asset management system with IoT device integration for the Ministry of Public Works.",
     media: "/mapu.mp4",
-    type: "video",
   },
   {
     id: 7,
-    desc: "Merancang dan mengembangkan sistem Transformasi Digital.",
+    title: "Digital Transformation",
+    category: "Gov Platform",
+    desc: "Digital transformation management system for government internal operations.",
     media: "/transformasidigital.mp4",
-    type: "video",
+  },
+];
+
+const services = [
+  {
+    icon: "◈",
+    label: "Website Development",
+    desc: "Company Profile, Landing Page, E-Commerce",
+  },
+  {
+    icon: "⬡",
+    label: "Fullstack Web Application",
+    desc: "React, Next.js, Node.js, Laravel",
+  },
+  {
+    icon: "◇",
+    label: "UI/UX Design",
+    desc: "Figma prototyping, design systems",
+  },
+  {
+    icon: "◉",
+    label: "SEO Optimization",
+    desc: "Performance, meta, structured data",
+  },
+  {
+    icon: "◈",
+    label: "Maintenance & Deployment",
+    desc: "CI/CD, VPS, cloud hosting",
+  },
+  {
+    icon: "⬡",
+    label: "REST API Development",
+    desc: "Integration & documentation",
+  },
+  {
+    icon: "◇",
+    label: "Database Design",
+    desc: "PostgreSQL, MySQL, schema optimization",
+  },
+  { icon: "◉", label: "Auth Systems", desc: "JWT, OAuth, role-based access" },
+  {
+    icon: "◈",
+    label: "Admin Dashboard & CMS",
+    desc: "Custom panels, content management",
+  },
+  {
+    icon: "⬡",
+    label: "Performance Optimization",
+    desc: "Profiling, caching, code splitting",
+  },
+  {
+    icon: "◇",
+    label: "Responsive Development",
+    desc: "Mobile-first, cross-browser",
+  },
+  {
+    icon: "◉",
+    label: "Third-Party Integrations",
+    desc: "Payment gateways, maps, analytics",
   },
 ];
 
 const techStack = [
-  { id: 1, src: "/html.svg", name: "HTML" },
-  { id: 2, src: "/css.svg", name: "CSS" },
-  { id: 3, src: "/javascript.svg", name: "JavaScript" },
-  { id: 4, src: "/reactjs.svg", name: "React JS" },
-  { id: 5, src: "/nodejs.svg", name: "Node JS" },
-  { id: 6, src: "/tailwind.svg", name: "Tailwind CSS" },
-  { id: 7, src: "/vercel.svg", name: "Vercel" },
-  { id: 8, src: "/php.svg", name: "PHP" },
-  { id: 9, src: "/codeigniter.svg", name: "Code Igniter" },
-  { id: 10, src: "/laravel.svg", name: "Laravel" },
-  { id: 11, src: "/postgre.svg", name: "Postgresql" },
-  { id: 12, src: "/typescript.svg", name: "Typescript" },
+  { src: "/html.svg", name: "HTML" },
+  { src: "/css.svg", name: "CSS" },
+  { src: "/javascript.svg", name: "JavaScript" },
+  { src: "/reactjs.svg", name: "React" },
+  { src: "/nodejs.svg", name: "Node.js" },
+  { src: "/tailwind.svg", name: "Tailwind" },
+  { src: "/vercel.svg", name: "Vercel" },
+  { src: "/php.svg", name: "PHP" },
+  { src: "/codeigniter.svg", name: "CodeIgniter" },
+  { src: "/laravel.svg", name: "Laravel" },
+  { src: "/postgre.svg", name: "PostgreSQL" },
+  { src: "/typescript.svg", name: "TypeScript" },
 ];
 
+// ─── Tab Button ───────────────────────────────────────────────────────────────
+
+function TabBtn({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="relative px-6 py-2.5 text-sm font-semibold transition-colors duration-200 rounded-full"
+      style={{ color: active ? "#fff" : "rgba(148,163,184,0.7)" }}
+    >
+      {active && (
+        <motion.div
+          layoutId="tab-pill"
+          className="absolute inset-0 rounded-full"
+          style={{
+            background: "rgba(109,40,217,0.7)",
+            border: "1px solid rgba(168,85,247,0.4)",
+          }}
+          transition={{ type: "spring", stiffness: 380, damping: 28 }}
+        />
+      )}
+      <span className="relative z-10">{children}</span>
+    </button>
+  );
+}
+
+// ─── Project Card ─────────────────────────────────────────────────────────────
+
+function ProjectCard({
+  project,
+  index,
+}: {
+  project: (typeof projects)[0];
+  index: number;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-80px" });
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 40 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{
+        duration: 0.7,
+        delay: (index % 3) * 0.1,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+      onHoverStart={() => setHovered(true)}
+      onHoverEnd={() => setHovered(false)}
+      className="group relative overflow-hidden rounded-2xl cursor-pointer"
+      style={{
+        background: "rgba(255,255,255,0.025)",
+        border: `1px solid ${hovered ? "rgba(168,85,247,0.4)" : "rgba(168,85,247,0.12)"}`,
+        transition: "border-color 0.3s",
+        boxShadow: hovered ? "0 20px 60px rgba(109,40,217,0.2)" : "none",
+      }}
+    >
+      {/* Video */}
+      <div className="relative h-[380px] overflow-hidden bg-[#0a0514]">
+        <motion.div
+          animate={{ scale: hovered ? 1.05 : 1 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="w-full h-full"
+        >
+          <video
+            src={project.media}
+            className="w-full h-full object-cover opacity-90"
+            muted
+            loop
+            autoPlay
+            playsInline
+          />
+        </motion.div>
+
+        {/* Category badge */}
+        <div className="absolute top-3 left-3 z-10">
+          <span
+            className="text-[9px] font-bold tracking-[0.14em] uppercase px-2.5 py-1 rounded-full"
+            style={{
+              background: "rgba(12,5,18,0.75)",
+              border: "1px solid rgba(168,85,247,0.3)",
+              color: "#c084fc",
+              backdropFilter: "blur(8px)",
+            }}
+          >
+            {project.category}
+          </span>
+        </div>
+
+        {/* Overlay on hover */}
+        <motion.div
+          className="absolute inset-0 flex items-center justify-center"
+          animate={{ opacity: hovered ? 1 : 0 }}
+          transition={{ duration: 0.3 }}
+          style={{
+            background: "rgba(12,5,18,0.55)",
+            backdropFilter: "blur(2px)",
+          }}
+        >
+          <div className="flex gap-3">
+            {project.link && (
+              <motion.a
+                href={project.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-white"
+                style={{
+                  background: "rgba(109,40,217,0.8)",
+                  border: "1px solid rgba(168,85,247,0.5)",
+                }}
+              >
+                <ArrowUpRight size={13} />
+                View Live
+              </motion.a>
+            )}
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+              <Link
+                href={`/project/${project.id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-white"
+                style={{
+                  background: "rgba(255,255,255,0.1)",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                }}
+              >
+                Details →
+              </Link>
+            </motion.div>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Info */}
+      <div className="p-5">
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <h3
+            className="font-bold text-white leading-tight"
+            style={{ fontSize: 16, letterSpacing: "-0.01em" }}
+          >
+            {project.title}
+          </h3>
+          <motion.div
+            animate={{ rotate: hovered ? 45 : 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <ArrowUpRight
+              size={16}
+              className="text-purple-500 flex-shrink-0 mt-0.5"
+            />
+          </motion.div>
+        </div>
+        <p className="text-gray-500 text-[13px] leading-relaxed">
+          {project.desc}
+        </p>
+      </div>
+
+      {/* Bottom progress line */}
+      <motion.div
+        className="absolute bottom-0 left-0 h-[2px]"
+        animate={{ width: hovered ? "100%" : "0%" }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        style={{
+          background: "linear-gradient(to right, #7c3aed, #c084fc)",
+        }}
+      />
+    </motion.div>
+  );
+}
+
+// ─── Service Card ─────────────────────────────────────────────────────────────
+
+function ServiceCard({
+  service,
+  index,
+}: {
+  service: (typeof services)[0];
+  index: number;
+}) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-40px" });
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 24 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{
+        duration: 0.6,
+        delay: (index % 3) * 0.08,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+      onHoverStart={() => setHovered(true)}
+      onHoverEnd={() => setHovered(false)}
+      whileHover={{ y: -4 }}
+      className="relative p-5 rounded-2xl overflow-hidden cursor-default"
+      style={{
+        background: hovered
+          ? "rgba(255,255,255,0.05)"
+          : "rgba(255,255,255,0.025)",
+        border: `1px solid ${hovered ? "rgba(168,85,247,0.35)" : "rgba(168,85,247,0.12)"}`,
+        transition: "background 0.3s, border-color 0.3s",
+      }}
+    >
+      {/* Corner number */}
+      <div
+        className="absolute top-4 right-4 text-[10px] font-black tracking-wider tabular-nums transition-colors duration-300"
+        style={{ color: hovered ? "#7c3aed" : "rgba(109,40,217,0.3)" }}
+      >
+        {String(index + 1).padStart(2, "0")}
+      </div>
+
+      {/* Bottom bar */}
+      <motion.div
+        className="absolute bottom-0 left-0 h-[1.5px]"
+        animate={{ width: hovered ? "100%" : "0%" }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        style={{ background: "linear-gradient(to right, #7c3aed, #c084fc)" }}
+      />
+
+      {/* Corner glow */}
+      <div
+        className="absolute top-0 left-0 w-20 h-20 rounded-full pointer-events-none transition-opacity duration-500"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(167,139,250,0.1), transparent 70%)",
+          opacity: hovered ? 1 : 0,
+          transform: "translate(-30%, -30%)",
+        }}
+      />
+
+      <div
+        className="text-xl mb-3 transition-colors duration-300"
+        style={{ color: hovered ? "#c084fc" : "#7c3aed" }}
+      >
+        {service.icon}
+      </div>
+      <h4
+        className="font-bold text-white mb-1 leading-snug"
+        style={{ fontSize: 14, letterSpacing: "-0.01em" }}
+      >
+        {service.label}
+      </h4>
+      <p
+        className="text-[12px] leading-relaxed"
+        style={{ color: "rgba(148,163,184,0.65)" }}
+      >
+        {service.desc}
+      </p>
+    </motion.div>
+  );
+}
+
+// ─── Tech Card ────────────────────────────────────────────────────────────────
+
+function TechCard({
+  tech,
+  index,
+}: {
+  tech: (typeof techStack)[0];
+  index: number;
+}) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-40px" });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, scale: 0.85 }}
+      animate={isInView ? { opacity: 1, scale: 1 } : {}}
+      transition={{
+        duration: 0.5,
+        delay: index * 0.05,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+      className="flex flex-col items-center justify-center gap-3 p-5 rounded-2xl cursor-default group"
+      style={{
+        background: "rgba(255,255,255,0.025)",
+        border: "1px solid rgba(168,85,247,0.12)",
+        aspectRatio: "1",
+        minHeight: 110,
+      }}
+      whileHover={{
+        background: "rgba(109,40,217,0.08)",
+        borderColor: "rgba(168,85,247,0.35)",
+        y: -6,
+        scale: 1.05,
+        boxShadow: "0 16px 40px rgba(109,40,217,0.2)",
+      }}
+    >
+      <div className="w-10 h-10 relative flex-shrink-0">
+        <Image
+          src={tech.src}
+          alt={tech.name}
+          fill
+          className="object-contain opacity-75 group-hover:opacity-100 transition-opacity duration-300"
+        />
+      </div>
+      <p
+        className="text-[11px] font-medium text-center leading-tight"
+        style={{ color: "rgba(148,163,184,0.7)" }}
+      >
+        {tech.name}
+      </p>
+    </motion.div>
+  );
+}
+
+// ─── Main Section ─────────────────────────────────────────────────────────────
+
 export default function Portfolio() {
-  const [activeId, setActiveId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>("projects");
+  const sectionRef = useRef<HTMLElement>(null);
+
+  const tabVariants = {
+    initial: { opacity: 0, y: 16 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -12 },
+  };
 
   return (
     <section
       id="portfolio"
-      className="relative scroll-mt-24 px-6 pt-20 pb-32 max-w-[1280px] mx-auto"
+      ref={sectionRef}
+      className="relative scroll-mt-24 overflow-hidden py-24 md:py-36"
     >
-      {/* HEADER */}
-      <div className="mb-10 text-center">
-        <h2 className="text-5xl md:text-6xl font-bold text-purple-400 mb-4">
-          Project Portfolio
-        </h2>
+      {/* ── BACKGROUND ── */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-[#0C0512]" />
+        <div
+          className="absolute top-[10%] left-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(109,40,217,0.1) 0%, transparent 70%)",
+            filter: "blur(80px)",
+          }}
+        />
+        <div
+          className="absolute inset-0 opacity-[0.025]"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle, #a855f7 1px, transparent 1px)",
+            backgroundSize: "50px 50px",
+          }}
+        />
+      </div>
 
-        <p className="flex items-center justify-center gap-3 text-gray-400 mb-8">
-          <span className="text-purple-400">✦</span>
-          Selected projects I’ve worked on
-          <span className="text-purple-400">✦</span>
-        </p>
+      <div className="max-w-[1320px] mx-auto px-6 md:px-10 lg:px-16">
+        {/* ── SECTION LABEL ── */}
+        <div className="flex items-center gap-4 mb-6">
+          <motion.div
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            className="h-px w-12 bg-purple-500 origin-left"
+          />
+          <motion.span
+            initial={{ opacity: 0, x: 10 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="text-purple-400 text-xs tracking-[0.25em] uppercase font-medium"
+          >
+            Work
+          </motion.span>
+        </div>
 
-        {/* TAB MENU */}
-        <div className="flex justify-center">
-          <div className="flex gap-2 bg-white/5 p-2 rounded-xl border border-white/10">
+        {/* ── HEADING ── */}
+        <div className="mb-14 overflow-hidden">
+          <motion.h2
+            initial={{ y: "105%", opacity: 0 }}
+            whileInView={{ y: "0%", opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            className="text-[clamp(40px,8vw,100px)] font-black leading-[0.9] tracking-tight"
+          >
+            <span className="text-white">Selected </span>
+            <span
+              className="text-transparent"
+              style={{ WebkitTextStroke: "1px rgba(168,85,247,0.45)" }}
+            >
+              Projects
+            </span>
+          </motion.h2>
+        </div>
+
+        {/* ── TABS ── */}
+        <div className="flex justify-start mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="flex gap-1 p-1.5 rounded-full"
+            style={{
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(168,85,247,0.15)",
+            }}
+          >
             {[
               { key: "projects", label: "Projects" },
               { key: "services", label: "Services" },
               { key: "tech", label: "Tech Stack" },
             ].map((tab) => (
-              <button
+              <TabBtn
                 key={tab.key}
+                active={activeTab === tab.key}
                 onClick={() => setActiveTab(tab.key as TabType)}
-                className={`px-6 py-2 rounded-lg text-sm font-medium transition-all duration-300
-                  ${
-                    activeTab === tab.key
-                      ? "bg-purple-600 text-white shadow-lg shadow-purple-600/30"
-                      : "text-gray-400 hover:text-white hover:bg-white/10"
-                  }
-                `}
               >
                 {tab.label}
-              </button>
+              </TabBtn>
             ))}
-          </div>
+          </motion.div>
         </div>
-      </div>
 
-      {/* CONTENT */}
-      {activeTab === "projects" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {projects.map((project) => {
-            const isActive = activeId === project.id;
-
-            return (
-              <div
-                key={project.id}
-                onClick={() => setActiveId(isActive ? null : project.id)}
-                className="group relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 hover:border-purple-500/40 transition-colors cursor-pointer"
-              >
-                <div className="relative h-[420px] bg-black">
-                  <video
-                    src={project.media}
-                    className="w-full h-full object-cover"
-                    muted
-                    loop
-                    autoPlay
-                    playsInline
-                  />
-                </div>
-
-                <div
-                  className={`absolute inset-0 bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-center text-center px-6 transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100 ${
-                    isActive ? "opacity-100" : "opacity-0 md:opacity-0"
-                  }`}
-                >
-                  <p className="text-gray-200 text-sm leading-relaxed mb-6">
-                    {project.desc}
-                  </p>
-
-                  <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
-                    {project.link && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.open(project.link, "_blank");
-                        }}
-                        className="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium hover:bg-gray-200 transition"
-                      >
-                        View App
-                      </button>
-                    )}
-
-                    <Link
-                      href={`/project/${project.id}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="px-4 py-2 rounded-lg bg-black/40 text-white text-sm font-medium border border-white/20 hover:bg-black/60 transition"
-                    >
-                      Details →
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {activeTab === "services" && (
-        <div className="mt-16">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              "Website Development (Company Profile, Landing Page, E-Commerce)",
-              "Fullstack Web Application",
-              "UI/UX Design (Figma)",
-              "SEO Optimization",
-              "Website Maintenance & Deployment",
-              "REST API Development & Integration",
-              "Database Design & Management",
-              "Authentication & Authorization System",
-              "Admin Dashboard & CMS Development",
-              "Performance Optimization & Debugging",
-              "Responsive & Mobile-First Development",
-              "Third-Party API Integration",
-              "Version Control & Team Collaboration (Git)",
-              "Hosting Setup (VPS, Cloud, cPanel)",
-              "Website Security & Performance Monitoring",
-            ].map((service, index) => (
-              <div
-                key={index}
-                className="group relative p-6 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 hover:border-purple-500/50 transition-all duration-300 overflow-hidden"
-              >
-                {/* Number badge */}
-                <div className="absolute -top-2 -right-2 w-12 h-12 bg-purple-600/20 rounded-full flex items-center justify-center text-purple-400 font-bold text-sm group-hover:bg-purple-600 group-hover:text-white transition-all duration-300 group-hover:scale-110">
-                  {String(index + 1).padStart(2, "0")}
-                </div>
-
-                {/* Animated line */}
-                <div className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-purple-600 to-purple-400 w-0 group-hover:w-full transition-all duration-500" />
-
-                <p className="text-gray-300 group-hover:text-white transition leading-relaxed">
-                  {service}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-      {activeTab === "tech" && (
-        <div className="mt-16 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-10 justify-items-center">
-          {techStack.map((tech) => (
-            <div
-              key={tech.id}
-              className="
-          group w-36 h-36
-          bg-white/5 border border-white/10
-          rounded-2xl
-          flex flex-col items-center justify-center
-          gap-3
-          hover:border-purple-500/40
-          hover:shadow-lg hover:shadow-purple-500/20
-          transition-all duration-300
-        "
+        {/* ── CONTENT ── */}
+        <AnimatePresence mode="wait">
+          {activeTab === "projects" && (
+            <motion.div
+              key="projects"
+              variants={tabVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
             >
-              <Image
-                src={tech.src}
-                alt={tech.name}
-                width={55}
-                height={55}
-                className="opacity-80 group-hover:opacity-100 transition duration-300"
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {projects.map((project, i) => (
+                  <ProjectCard key={project.id} project={project} index={i} />
+                ))}
+              </div>
+            </motion.div>
+          )}
 
-              <p className="text-sm text-gray-400 group-hover:text-white transition duration-300">
-                {tech.name}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
+          {activeTab === "services" && (
+            <motion.div
+              key="services"
+              variants={tabVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {services.map((service, i) => (
+                  <ServiceCard key={i} service={service} index={i} />
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === "tech" && (
+            <motion.div
+              key="tech"
+              variants={tabVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                {techStack.map((tech, i) => (
+                  <TechCard key={tech.name} tech={tech} index={i} />
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </section>
   );
 }

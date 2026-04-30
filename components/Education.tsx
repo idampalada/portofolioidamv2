@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { motion, useScroll, useTransform, useInView } from "framer-motion";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -11,21 +12,6 @@ interface TimelineEntry {
   desc: string;
   tag: string;
   active?: boolean;
-}
-
-interface TimelineItemProps {
-  item: TimelineEntry;
-  index: number;
-  isExperience: boolean;
-  isMobile: boolean;
-}
-
-interface ColumnProps {
-  title: string;
-  emoji: string;
-  data: TimelineEntry[];
-  isExperience: boolean;
-  isMobile: boolean;
 }
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -79,290 +65,336 @@ const experienceData: TimelineEntry[] = [
   },
 ];
 
-// ─── Hooks ────────────────────────────────────────────────────────────────────
+// ─── Timeline Card ────────────────────────────────────────────────────────────
 
-function useIsMobile(): boolean {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 640);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-  return isMobile;
-}
-
-// ─── Components ───────────────────────────────────────────────────────────────
-
-function TimelineItem({ item, index, isMobile }: TimelineItemProps) {
-  const [visible, setVisible] = useState(false);
+function TimelineCard({ item, index }: { item: TimelineEntry; index: number }) {
   const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) setVisible(true);
-      },
-      { threshold: 0.1 },
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
-
-  // Warna disamakan semua jadi ungu
-  const accentColor = "#a78bfa";
-  const placeColor = "#c4b5fd";
+  const isInView = useInView(ref, { once: true, margin: "-60px" });
+  const [hovered, setHovered] = useState(false);
 
   return (
-    <div
+    <motion.div
       ref={ref}
-      style={{
-        display: "flex",
-        opacity: visible ? 1 : 0,
-        transform: visible ? "none" : "translateY(20px)",
-        transition: `opacity 0.55s ease ${index * 0.1}s, transform 0.55s ease ${
-          index * 0.1
-        }s`,
+      initial={{ opacity: 0, x: -24 }}
+      animate={isInView ? { opacity: 1, x: 0 } : {}}
+      transition={{
+        duration: 0.7,
+        delay: index * 0.12,
+        ease: [0.22, 1, 0.36, 1],
       }}
+      className="flex gap-4"
     >
-      {/* Dot + vertical line */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          flexShrink: 0,
-          width: "24px",
-          marginRight: "16px",
-        }}
-      >
-        <div
+      {/* Timeline spine */}
+      <div className="flex flex-col items-center flex-shrink-0 w-5">
+        {/* Dot */}
+        <motion.div
+          animate={item.active ? { scale: [1, 1.3, 1] } : {}}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="relative flex-shrink-0 mt-1"
+          style={{ zIndex: 1 }}
+        >
+          <div
+            className="rounded-full"
+            style={{
+              width: item.active ? 13 : 9,
+              height: item.active ? 13 : 9,
+              background: item.active
+                ? "linear-gradient(135deg, #a78bfa, #c084fc)"
+                : "#7c3aed",
+              boxShadow: item.active
+                ? "0 0 0 3px rgba(167,139,250,0.2), 0 0 16px rgba(167,139,250,0.5)"
+                : "none",
+            }}
+          />
+          {item.active && (
+            <motion.div
+              className="absolute inset-[-4px] rounded-full border border-purple-400/30"
+              animate={{ scale: [1, 1.6, 1], opacity: [0.6, 0, 0.6] }}
+              transition={{ duration: 2.5, repeat: Infinity }}
+            />
+          )}
+        </motion.div>
+        {/* Line */}
+        <motion.div
+          initial={{ scaleY: 0 }}
+          animate={isInView ? { scaleY: 1 } : {}}
+          transition={{ duration: 0.6, delay: index * 0.12 + 0.3 }}
+          className="flex-1 w-px origin-top mt-2"
           style={{
-            width: item.active ? "13px" : "9px",
-            height: item.active ? "13px" : "9px",
-            borderRadius: "50%",
-            background: accentColor,
-            border: item.active
-              ? "2px solid rgba(167,139,250,0.6)"
-              : "1.5px solid rgba(167,139,250,0.35)",
-            marginTop: "4px",
-            flexShrink: 0,
-            zIndex: 1,
-          }}
-        />
-        <div
-          style={{
-            width: "1.5px",
-            flex: 1,
             background:
-              "linear-gradient(to bottom, rgba(167,139,250,0.25), transparent)",
-            marginTop: "5px",
-            minHeight: "32px",
+              "linear-gradient(to bottom, rgba(167,139,250,0.3), transparent)",
+            minHeight: 32,
           }}
         />
       </div>
 
-      {/* Period + card */}
-      <div style={{ flex: 1, paddingBottom: "24px", minWidth: 0 }}>
-        <div
-          style={{
-            fontSize: "10.5px",
-            fontWeight: 700,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: accentColor,
-            marginBottom: "8px",
-            lineHeight: 1,
-          }}
+      {/* Card */}
+      <div className="flex-1 pb-8 min-w-0">
+        {/* Period */}
+        <p
+          className="text-[10.5px] font-bold tracking-[0.12em] uppercase mb-2"
+          style={{ color: "#a78bfa" }}
         >
           {item.period}
-        </div>
+        </p>
 
-        <div
+        <motion.div
+          onHoverStart={() => setHovered(true)}
+          onHoverEnd={() => setHovered(false)}
+          whileHover={{ y: -3 }}
+          transition={{ duration: 0.25 }}
+          className="relative rounded-2xl p-5 overflow-hidden cursor-default"
           style={{
-            background: "rgba(255,255,255,0.03)",
-            border: "1px solid rgba(167,139,250,0.35)",
-            borderRadius: "14px",
-            padding: isMobile ? "14px" : "20px 22px",
-            transition: "border-color 0.3s, background 0.3s",
-            position: "relative",
-            overflow: "hidden",
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLDivElement).style.background =
-              "rgba(255,255,255,0.06)";
-            (e.currentTarget as HTMLDivElement).style.borderColor =
-              "rgba(167,139,250,0.5)";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLDivElement).style.background =
-              "rgba(255,255,255,0.03)";
-            (e.currentTarget as HTMLDivElement).style.borderColor =
-              "rgba(167,139,250,0.35)";
+            background: hovered
+              ? "rgba(255,255,255,0.055)"
+              : "rgba(255,255,255,0.025)",
+            border: `1px solid ${hovered ? "rgba(167,139,250,0.45)" : "rgba(167,139,250,0.18)"}`,
+            transition: "background 0.3s, border-color 0.3s",
           }}
         >
-          {/* Tag */}
+          {/* Subtle corner glow on hover */}
           <div
+            className="absolute top-0 left-0 w-24 h-24 rounded-full pointer-events-none transition-opacity duration-500"
             style={{
-              display: "inline-block",
-              fontSize: "9px",
-              fontWeight: 700,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: accentColor,
-              background: `${accentColor}18`,
-              border: `1px solid ${accentColor}33`,
-              borderRadius: "4px",
-              padding: "2px 7px",
-              marginBottom: "9px",
+              background:
+                "radial-gradient(circle, rgba(167,139,250,0.12), transparent 70%)",
+              opacity: hovered ? 1 : 0,
+              transform: "translate(-30%, -30%)",
+            }}
+          />
+
+          {/* Tag */}
+          <span
+            className="inline-block text-[9px] font-bold tracking-[0.14em] uppercase rounded-md px-2 py-1 mb-3"
+            style={{
+              color: item.active ? "#c084fc" : "#a78bfa",
+              background: item.active
+                ? "rgba(192,132,252,0.12)"
+                : "rgba(167,139,250,0.1)",
+              border: `1px solid ${item.active ? "rgba(192,132,252,0.25)" : "rgba(167,139,250,0.2)"}`,
             }}
           >
             {item.tag}
-          </div>
+            {item.active && (
+              <span className="ml-1.5 inline-block w-1.5 h-1.5 rounded-full bg-green-400 align-middle" />
+            )}
+          </span>
 
           <h4
-            style={{
-              fontSize: isMobile ? "15px" : "16px",
-              fontWeight: 700,
-              color: "#f1f5f9",
-              margin: "0 0 3px",
-              letterSpacing: "-0.01em",
-              lineHeight: 1.3,
-            }}
+            className="font-bold mb-1 leading-snug"
+            style={{ fontSize: 15, color: "#f1f5f9", letterSpacing: "-0.01em" }}
           >
             {item.title}
           </h4>
-
           <p
-            style={{
-              fontSize: "12.5px",
-              color: placeColor,
-              margin: "0 0 9px",
-              fontWeight: 500,
-            }}
+            className="text-[12.5px] font-medium mb-3"
+            style={{ color: "#c4b5fd" }}
           >
             {item.place}
           </p>
-
           <p
-            style={{
-              fontSize: "13px",
-              color: "rgba(148,163,184,0.82)",
-              margin: 0,
-              lineHeight: 1.65,
-            }}
+            className="text-[13px] leading-relaxed"
+            style={{ color: "rgba(148,163,184,0.8)" }}
           >
             {item.desc}
           </p>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
-function Column({ title, emoji, data, isExperience, isMobile }: ColumnProps) {
+// ─── Column Header ────────────────────────────────────────────────────────────
+
+function ColumnHeader({
+  label,
+  title,
+  delay = 0,
+}: {
+  label: string;
+  title: string;
+  delay?: number;
+}) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-40px" });
   return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
-          marginBottom: "28px",
-        }}
+    <div ref={ref} className="mb-10">
+      <motion.p
+        initial={{ opacity: 0, x: -16 }}
+        animate={isInView ? { opacity: 1, x: 0 } : {}}
+        transition={{ duration: 0.5, delay }}
+        className="text-[10px] font-bold tracking-[0.2em] uppercase text-purple-500 mb-2 flex items-center gap-2"
       >
-        <span style={{ fontSize: "20px" }}>{emoji}</span>
-        <h3
-          style={{
-            fontSize: isMobile ? "20px" : "22px",
-            fontWeight: 800,
-            color: "#f1f5f9",
-            margin: 0,
-            letterSpacing: "-0.02em",
-          }}
-        >
-          {title}
-        </h3>
-      </div>
-
-      <div>
-        {data.map((item: TimelineEntry, i: number) => (
-          <TimelineItem
-            key={i}
-            item={item}
-            index={i}
-            isExperience={isExperience}
-            isMobile={isMobile}
-          />
-        ))}
-      </div>
+        <span
+          className="inline-block w-6 h-px bg-purple-600"
+          style={{ display: "inline-block" }}
+        />
+        {label}
+      </motion.p>
+      <motion.h3
+        initial={{ opacity: 0, y: 14 }}
+        animate={isInView ? { opacity: 1, y: 0 } : {}}
+        transition={{
+          duration: 0.65,
+          delay: delay + 0.1,
+          ease: [0.22, 1, 0.36, 1],
+        }}
+        className="text-2xl md:text-3xl font-black text-white tracking-tight"
+      >
+        {title}
+      </motion.h3>
     </div>
   );
 }
 
-// ─── Section ──────────────────────────────────────────────────────────────────
+// ─── Main Section ─────────────────────────────────────────────────────────────
 
 export default function Education() {
-  const isMobile = useIsMobile();
-  const [titleVisible, setTitleVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
 
-  useEffect(() => {
-    const t = setTimeout(() => setTitleVisible(true), 100);
-    return () => clearTimeout(t);
-  }, []);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"],
+  });
+  const glowY = useTransform(scrollYProgress, [0, 1], ["-8%", "8%"]);
 
   return (
     <section
       id="education"
-      className="relative scroll-mt-24 px-4 sm:px-6 pt-14 md:pt-24 pb-12 max-w-[1280px] mx-auto"
+      ref={sectionRef}
+      className="relative scroll-mt-24 overflow-hidden py-24 md:py-36"
     >
-      <link
-        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap"
-        rel="stylesheet"
-      />
-
-      <div
-        className="mb-14 md:mb-24 text-center relative z-10"
-        style={{
-          opacity: titleVisible ? 1 : 0,
-          transform: titleVisible ? "none" : "translateY(-14px)",
-          transition: "opacity 0.7s ease, transform 0.7s ease",
-        }}
-      >
-        <h2 className="text-5xl md:text-6xl font-bold text-purple-400 mb-4">
-          Education & Experience
-        </h2>
-
-        <p className="flex items-center justify-center gap-3 text-gray-400">
-          <span className="text-purple-400">✦</span>
-          Academic background & professional experience
-          <span className="text-purple-400">✦</span>
-        </p>
+      {/* ── BACKGROUND ── */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-[#0C0512]" />
+        <motion.div
+          style={{
+            y: glowY,
+            background:
+              "radial-gradient(circle, rgba(109,40,217,0.12) 0%, transparent 70%)",
+            filter: "blur(80px)",
+          }}
+          className="absolute right-[-10%] top-[20%] w-[600px] h-[600px] rounded-full pointer-events-none"
+        />
+        {/* Grid */}
+        <div
+          className="absolute inset-0 opacity-[0.025]"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, #a855f7 1px, transparent 1px), linear-gradient(to bottom, #a855f7 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }}
+        />
       </div>
 
-      <div
-        className="relative z-10"
-        style={{
-          display: "grid",
-          gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)",
-          gap: isMobile ? "48px" : "56px 64px",
-        }}
-      >
-        <Column
-          title="My Education"
-          emoji="🎓"
-          data={educationData}
-          isExperience={false}
-          isMobile={isMobile}
-        />
+      <div className="max-w-[1320px] mx-auto px-6 md:px-10 lg:px-16">
+        {/* ── SECTION LABEL ── */}
+        <div className="flex items-center gap-4 mb-6">
+          <motion.div
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            className="h-px w-12 bg-purple-500 origin-left"
+          />
+          <motion.span
+            initial={{ opacity: 0, x: 10 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="text-purple-400 text-xs tracking-[0.25em] uppercase font-medium"
+          >
+            Background
+          </motion.span>
+        </div>
 
-        <Column
-          title="My Experience"
-          emoji="💼"
-          data={experienceData}
-          isExperience={true}
-          isMobile={isMobile}
-        />
+        {/* ── HEADING ── */}
+        <div className="mb-20 md:mb-28 overflow-hidden">
+          <motion.h2
+            initial={{ y: "105%", opacity: 0 }}
+            whileInView={{ y: "0%", opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            className="text-[clamp(40px,8vw,100px)] font-black leading-[0.9] tracking-tight"
+          >
+            <span className="text-white">Education </span>
+            <span
+              className="text-transparent"
+              style={{ WebkitTextStroke: "1px rgba(168,85,247,0.45)" }}
+            >
+              & Work
+            </span>
+          </motion.h2>
+        </div>
+
+        {/* ── TWO COLUMN TIMELINE ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 xl:gap-24">
+          {/* Education */}
+          <div>
+            <ColumnHeader label="Academic" title="My Education" delay={0} />
+            <div>
+              {educationData.map((item, i) => (
+                <TimelineCard key={i} item={item} index={i} />
+              ))}
+            </div>
+          </div>
+
+          {/* Experience */}
+          <div>
+            <ColumnHeader
+              label="Professional"
+              title="My Experience"
+              delay={0.15}
+            />
+            <div>
+              {experienceData.map((item, i) => (
+                <TimelineCard key={i} item={item} index={i} />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ── BOTTOM MARQUEE ── */}
+        <div className="mt-24 overflow-hidden">
+          <div className="w-full h-px bg-gradient-to-r from-transparent via-purple-800/40 to-transparent mb-10" />
+          <motion.div
+            className="flex gap-10 text-gray-800 text-sm tracking-widest uppercase font-medium whitespace-nowrap"
+            animate={{ x: ["0%", "-50%"] }}
+            transition={{ duration: 20, ease: "linear", repeat: Infinity }}
+            style={{ willChange: "transform" }}
+          >
+            {[
+              "Informatics Engineering",
+              "•",
+              "Web Development",
+              "•",
+              "IT Infrastructure",
+              "•",
+              "Product Management",
+              "•",
+              "System Design",
+              "•",
+              "Informatics Engineering",
+              "•",
+              "Web Development",
+              "•",
+              "IT Infrastructure",
+              "•",
+              "Product Management",
+              "•",
+              "System Design",
+              "•",
+            ].map((item, i) => (
+              <span
+                key={i}
+                className={item === "•" ? "text-purple-900" : "text-gray-800"}
+              >
+                {item}
+              </span>
+            ))}
+          </motion.div>
+          <div className="w-full h-px bg-gradient-to-r from-transparent via-purple-800/40 to-transparent mt-10" />
+        </div>
       </div>
     </section>
   );
