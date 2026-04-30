@@ -477,7 +477,7 @@ export default function Portfolio() {
     <section
       id="portfolio"
       ref={sectionRef}
-      className="relative scroll-mt-24 overflow-hidden py-24 md:py-36"
+      className="relative scroll-mt-24 overflow-hidden py-24 md:py-12"
     >
       {/* ── BACKGROUND ── */}
       <div className="absolute inset-0 -z-10">
@@ -541,7 +541,7 @@ export default function Portfolio() {
         </div>
 
         {/* ── TABS ── */}
-        <div className="flex justify-start mb-12">
+        <div className="flex justify-center mb-12">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}

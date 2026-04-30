@@ -201,7 +201,7 @@ export default function Contact() {
     <section
       id="contact"
       ref={sectionRef}
-      className="relative scroll-mt-24 overflow-hidden py-24 md:py-36"
+      className="relative scroll-mt-24 overflow-hidden py-24 md:py-12"
     >
       {/* ── BACKGROUND ── */}
       <div className="absolute inset-0 -z-10">
@@ -493,23 +493,6 @@ export default function Contact() {
             </motion.div>
           </div>
         </div>
-
-        {/* ── FOOTER LINE ── */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="mt-24 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4"
-          style={{ borderTop: "1px solid rgba(167,139,250,0.1)" }}
-        >
-          <p className="text-gray-700 text-xs">
-            © 2025 Idam Palada. Built with Next.js & Tailwind CSS.
-          </p>
-          <p className="text-gray-700 text-xs">
-            Designed & developed with ♥ in Jakarta
-          </p>
-        </motion.div>
       </div>
     </section>
   );

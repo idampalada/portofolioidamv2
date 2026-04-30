@@ -262,7 +262,7 @@ export default function Education() {
     <section
       id="education"
       ref={sectionRef}
-      className="relative scroll-mt-24 overflow-hidden py-24 md:py-36"
+      className="relative scroll-mt-24 overflow-hidden py-24 md:py-12"
     >
       {/* ── BACKGROUND ── */}
       <div className="absolute inset-0 -z-10">
@@ -387,7 +387,7 @@ export default function Education() {
             ].map((item, i) => (
               <span
                 key={i}
-                className={item === "•" ? "text-purple-900" : "text-gray-800"}
+                className={item === "•" ? "text-purple-700" : "text-gray-600"}
               >
                 {item}
               </span>

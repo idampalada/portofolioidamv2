@@ -124,9 +124,7 @@ export default function Navbar() {
                 className="object-contain"
               />
             </motion.div>
-            <span className="text-sm font-bold text-white tracking-tight">
-              Idam<span className="text-purple-400">.</span>
-            </span>
+            <span className="text-sm font-bold text-white tracking-tight"></span>
           </Link>
 
           {/* Menu */}
@@ -174,9 +172,7 @@ export default function Navbar() {
         <nav className="md:hidden flex items-center justify-between h-16 px-6 relative">
           <Link href="#hero" className="flex items-center gap-2.5">
             <Image src="/logoidam.svg" alt="Logo" width={26} height={26} />
-            <span className="text-sm font-bold text-white">
-              Idam<span className="text-purple-400">.</span>
-            </span>
+            <span className="text-sm font-bold text-white"></span>
           </Link>
 
           {/* Hamburger */}

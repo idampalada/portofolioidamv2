@@ -330,7 +330,7 @@ export default function Hero() {
 
       {/* ── CONTENT ── */}
       <div className="max-w-[1320px] mx-auto px-6 md:px-10 lg:px-16">
-        <div className="grid grid-cols-12 gap-8 lg:gap-0 items-center min-h-screen py-24 md:py-0">
+        <div className="grid grid-cols-12 gap-8 lg:gap-0 items-center min-h-screen py-12 md:py-0">
           {/* LEFT */}
           <div className="col-span-12 lg:col-span-6 z-10">
             {/* Greeting */}

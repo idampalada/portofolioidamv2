@@ -139,7 +139,7 @@ export default function About() {
     <section
       id="about"
       ref={sectionRef}
-      className="relative scroll-mt-24 overflow-hidden py-24 md:py-36"
+      className="relative scroll-mt-24 overflow-hidden pt-6 pb-16 md:pt-8 md:pb-20"
     >
       {/* ── BACKGROUND ── */}
       <div className="absolute inset-0 -z-10">
@@ -173,7 +173,7 @@ export default function About() {
 
       <div className="max-w-[1320px] mx-auto px-6 md:px-10 lg:px-16">
         {/* ── SECTION LABEL ── */}
-        <div className="flex items-center gap-4 mb-20">
+        <div className="flex items-center gap-4 mb-4">
           <motion.div
             initial={{ scaleX: 0 }}
             whileInView={{ scaleX: 1 }}
@@ -193,7 +193,7 @@ export default function About() {
         </div>
 
         {/* ── LARGE HEADING ── */}
-        <div className="mb-20 md:mb-28">
+        <div className="mb-6 md:mb-8">
           <RevealLine className="text-[clamp(48px,10vw,120px)] font-black leading-[0.88] tracking-tight text-white">
             Who I
           </RevealLine>
@@ -426,7 +426,7 @@ export default function About() {
                   <span
                     key={i}
                     className={
-                      item === "•" ? "text-purple-800" : "text-gray-700"
+                      item === "•" ? "text-purple-700" : "text-gray-600"
                     }
                   >
                     {item}
