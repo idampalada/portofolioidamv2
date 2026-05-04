@@ -9,7 +9,6 @@ import { motion, useMotionValue, useSpring } from "framer-motion";
 
 gsap.registerPlugin(ScrollTrigger);
 
-/* ─── SPLIT TEXT ─────────────────────────────────────── */
 function SplitChars({
   text,
   className,
@@ -34,7 +33,6 @@ function SplitChars({
   );
 }
 
-/* ─── MAGNETIC BUTTON ────────────────────────────────── */
 function MagneticButton({
   children,
   className,
@@ -71,7 +69,6 @@ function MagneticButton({
   );
 }
 
-/* ─── ANIMATED COUNTER ───────────────────────────────── */
 function AnimatedCounter({
   target,
   suffix,
@@ -111,7 +108,6 @@ function AnimatedCounter({
   );
 }
 
-/* ─── NOISE TEXTURE ──────────────────────────────────── */
 function NoiseTexture() {
   return (
     <svg
@@ -132,16 +128,6 @@ function NoiseTexture() {
   );
 }
 
-/* ═══════════════════════════════════════════════════════
-   HERO — card stack pattern
-   
-   Cara kerja:
-   - Hero adalah sebuah "card" sticky di top: 0
-   - z-index: 10 (About akan punya z-index lebih tinggi)
-   - Saat user scroll, About card slide naik DI ATAS Hero
-   - Hero tidak perlu scroll spacer — cukup min-h-screen
-   - Efek dim/scale Hero dikendalikan GSAP scrub saat About masuk
-═══════════════════════════════════════════════════════ */
 export default function Hero() {
   const roles = ["Fullstack Developer", "Backend Engineer", "UI/UX Designer"];
   const [roleIdx, setRoleIdx] = useState(0);
@@ -161,7 +147,6 @@ export default function Hero() {
   const lineRef = useRef<HTMLDivElement>(null);
   const heroDimRef = useRef<HTMLDivElement>(null);
 
-  /* ── Typing effect ── */
   useEffect(() => {
     const cur = roles[roleIdx];
     const speed = deleting ? 40 : 90;
@@ -182,11 +167,9 @@ export default function Hero() {
     return () => clearTimeout(t);
   }, [typed, deleting, roleIdx]);
 
-  /* ── GSAP entrance ── */
   useEffect(() => {
     const ctx = gsap.context(() => {
       const chars = nameLineRef.current?.querySelectorAll(".split-char") ?? [];
-
       gsap.set(heroDimRef.current, { opacity: 0 });
       gsap.set(chars, { y: "100%", opacity: 0 });
       gsap.set(greetingRef.current, { opacity: 0, x: -30 });
@@ -232,7 +215,6 @@ export default function Hero() {
         delay: 2,
       });
 
-      // Stats counter trigger
       gsap.from(statsRef.current, {
         opacity: 0,
         y: 40,
@@ -250,7 +232,6 @@ export default function Hero() {
     return () => ctx.revert();
   }, []);
 
-  /* ── Dim effect saat About card slide masuk ── */
   useEffect(() => {
     let st: ScrollTrigger | undefined;
 
@@ -258,13 +239,11 @@ export default function Hero() {
       const aboutEl = document.querySelector("#about-section");
       if (!aboutEl) return false;
 
-      // About mulai masuk dari bottom viewport → sampai top viewport
-      // Selama itu Hero di-dim dan di-scale down
       st = ScrollTrigger.create({
         trigger: "#about-section",
         scroller: document.documentElement,
-        start: "top 95%", // About hampir masuk viewport
-        end: "top 20%", // About sudah naik ke atas
+        start: "top 95%",
+        end: "top 20%",
         scrub: 1,
         onUpdate: (self) => {
           const p = self.progress;
@@ -303,28 +282,20 @@ export default function Hero() {
     };
   }, []);
 
-  /* ── Image magnetic ── */
   const imgX = useMotionValue(0);
   const imgY = useMotionValue(0);
   const imgSpringX = useSpring(imgX, { stiffness: 120, damping: 22 });
   const imgSpringY = useSpring(imgY, { stiffness: 120, damping: 22 });
 
   return (
-    /*
-      Hero section:
-      - position: sticky top: 0  → tetap di atas saat About slide naik
-      - z-index: 10               → About (z-20) akan berada di atasnya
-      - height: 100vh             → pas satu viewport, tidak ada scroll spacer
-    */
     <section
       id="hero"
       ref={sectionRef}
       className="sticky top-0 h-screen overflow-hidden"
       style={{ zIndex: 10 }}
     >
-      {/* Card wrapper — GSAP scale ini saat About masuk */}
-      <div ref={cardRef} className="absolute inset-0 will-change-transform">
-        {/* ── Background ── */}
+      {/* Hapus will-change-transform dari sini */}
+      <div ref={cardRef} className="absolute inset-0">
         <div className="absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-[#0C0512]" />
           <div
@@ -332,7 +303,7 @@ export default function Hero() {
             style={{
               background:
                 "radial-gradient(circle, #7B3FF2 0%, #4B1FA8 40%, transparent 70%)",
-              filter: "blur(80px)",
+              filter: "blur(60px)",
             }}
           />
           <div
@@ -340,16 +311,7 @@ export default function Hero() {
             style={{
               background:
                 "radial-gradient(circle, #C084FC 0%, #7C3AED 50%, transparent 70%)",
-              filter: "blur(100px)",
-            }}
-          />
-          <div
-            className="absolute top-[40%] left-[30%] w-[300px] h-[300px] rounded-full"
-            style={{
-              background:
-                "radial-gradient(circle, #A855F7 0%, transparent 60%)",
-              filter: "blur(60px)",
-              opacity: 0.08,
+              filter: "blur(80px)",
             }}
           />
           <NoiseTexture />
@@ -363,10 +325,8 @@ export default function Hero() {
           />
         </div>
 
-        {/* ── Content ── */}
         <div className="max-w-[1320px] mx-auto px-6 md:px-10 lg:px-16 h-full flex flex-col">
           <div className="grid grid-cols-12 gap-8 lg:gap-0 items-center flex-1 py-12 md:py-0">
-            {/* LEFT */}
             <div className="col-span-12 lg:col-span-6 z-10">
               <p
                 ref={greetingRef}
@@ -467,7 +427,6 @@ export default function Hero() {
               </div>
             </div>
 
-            {/* RIGHT */}
             <div className="col-span-12 lg:col-span-6 flex justify-center lg:justify-end z-10 mt-16 lg:mt-0">
               <div
                 className="relative"
@@ -549,7 +508,7 @@ export default function Hero() {
                         <span
                           className="w-1.5 h-1.5 rounded-full bg-green-400"
                           style={{ boxShadow: "0 0 6px #4ade80" }}
-                        />
+                        />{" "}
                         Available for work
                       </div>
                     </div>
@@ -602,7 +561,6 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* Stats bar */}
           <div ref={statsRef} className="pb-10 md:pb-14">
             <div className="w-full h-px bg-gradient-to-r from-transparent via-purple-800/50 to-transparent mb-10" />
             <div className="flex flex-col md:flex-row items-center justify-between gap-10 md:gap-0">
@@ -655,7 +613,6 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Scroll indicator */}
         <motion.div
           className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-gray-600"
           animate={{ y: [0, 8, 0] }}
@@ -667,7 +624,7 @@ export default function Hero() {
           <div className="w-px h-10 bg-gradient-to-b from-purple-700 to-transparent" />
         </motion.div>
 
-        {/* Dim overlay */}
+        {/* Hapus willChange: "opacity" dari sini */}
         <div
           ref={heroDimRef}
           className="absolute inset-0 pointer-events-none"
@@ -676,7 +633,6 @@ export default function Hero() {
               "linear-gradient(to bottom, rgba(5,2,10,0.3) 0%, rgba(5,2,10,0.95) 100%)",
             zIndex: 11,
             opacity: 0,
-            willChange: "opacity",
           }}
         />
       </div>

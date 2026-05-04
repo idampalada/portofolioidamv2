@@ -8,7 +8,6 @@ import { motion, useScroll, useTransform } from "framer-motion";
 
 gsap.registerPlugin(ScrollTrigger);
 
-/* ─── SKILL TAG ──────────────────────────────────────── */
 function SkillTag({ label, delay = 0 }: { label: string; delay?: number }) {
   return (
     <motion.span
@@ -33,7 +32,6 @@ function SkillTag({ label, delay = 0 }: { label: string; delay?: number }) {
   );
 }
 
-/* ─── REVEAL LINE ─────────────────────────────────────── */
 function RevealLine({
   children,
   delay = 0,
@@ -61,7 +59,6 @@ function RevealLine({
   );
 }
 
-/* ─── STAT CARD ──────────────────────────────────────── */
 function StatCard({
   number,
   label,
@@ -98,17 +95,6 @@ function StatCard({
   );
 }
 
-/* ═══════════════════════════════════════════════════════
-   ABOUT — card stack pattern
-   
-   Cara kerja:
-   - About adalah "card" dalam normal flow (bukan sticky)
-   - z-index: 20 → berada di ATAS Hero (z-10)
-   - Rounded top corners → flatten via GSAP saat card naik
-   - Tidak ada margin negatif — normal flow sudah cukup
-     karena Hero adalah sticky, sehingga About akan
-     scroll di atasnya secara natural
-═══════════════════════════════════════════════════════ */
 export default function About() {
   const sectionRef = useRef<HTMLElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
@@ -143,7 +129,6 @@ export default function About() {
     "Shipped e-commerce platforms, asset management systems, and internal tools. I work fast independently or in a team. Strong learning bias.",
   ];
 
-  /* ── Border radius flatten saat card naik ── */
   useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.fromTo(
@@ -167,18 +152,11 @@ export default function About() {
   }, []);
 
   return (
-    /*
-      CRITICAL LAYOUT:
-      - position: relative, z-index: 20
-      - Normal document flow — tidak sticky
-      - Hero (sticky z-10) di bawahnya tetap ter-pin
-      - Saat About discroll ke atas, ia "cover" Hero secara visual
-    */
     <section
       id="about-section"
       ref={sectionRef}
-      className="relative sticky top-0" // Tambahkan sticky top-0
-      style={{ zIndex: 20 }} // Tetap z-index 20 karena Education z-30
+      className="relative sticky top-0"
+      style={{ zIndex: 20 }}
     >
       <div
         id="about-inner-wrapper"
@@ -186,24 +164,19 @@ export default function About() {
         style={{
           background: "#0C0512",
           borderRadius: "2rem 2rem 0 0",
-          // Shadow ini yang menjual efek "card terangkat"
           boxShadow:
             "0 -40px 120px rgba(0,0,0,0.9), 0 -1px 0 rgba(168,85,247,0.15)",
-          willChange: "border-radius",
         }}
       >
-        {/* Background glow */}
         <div className="absolute inset-0 -z-10">
           <motion.div
             style={{
               y: glowY,
               background:
-                "radial-gradient(circle, #7C3AED 0%, #4C1D95 40%, transparent 70%)",
-              filter: "blur(100px)",
+                "radial-gradient(circle, rgba(124,58,237,0.2) 0%, transparent 70%)",
+              filter: "blur(80px)",
             }}
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] rounded-full pointer-events-none"
-            animate={{ scale: [1, 1.05, 1], opacity: [0.06, 0.1, 0.06] }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full pointer-events-none"
           />
           <div
             className="absolute inset-0 opacity-[0.04]"
@@ -215,7 +188,6 @@ export default function About() {
           />
         </div>
 
-        {/* Glowing top edge — menjual efek card */}
         <div
           className="absolute top-0 left-0 right-0 h-px pointer-events-none"
           style={{
@@ -225,7 +197,6 @@ export default function About() {
         />
 
         <div className="max-w-[1320px] mx-auto px-6 md:px-10 lg:px-16">
-          {/* Section label */}
           <div className="flex items-center gap-4 mb-4">
             <motion.div
               initial={{ scaleX: 0 }}
@@ -245,7 +216,6 @@ export default function About() {
             </motion.span>
           </div>
 
-          {/* Large heading */}
           <div className="mb-6 md:mb-8">
             <RevealLine className="text-[clamp(48px,10vw,120px)] font-black leading-[0.88] tracking-tight text-white">
               Who I
@@ -263,9 +233,7 @@ export default function About() {
             </RevealLine>
           </div>
 
-          {/* Content grid */}
           <div className="grid grid-cols-12 gap-12 lg:gap-16 items-start">
-            {/* LEFT — Image */}
             <div className="col-span-12 lg:col-span-5 flex justify-center lg:justify-start">
               <motion.div
                 ref={imageRef}
@@ -317,7 +285,6 @@ export default function About() {
                   />
                 </motion.div>
 
-                {/* Floating quote */}
                 <motion.div
                   className="absolute bottom-[-20px] right-[-20px] lg:right-[-40px] max-w-[200px] z-20"
                   initial={{ opacity: 0, y: 20, scale: 0.9 }}
@@ -354,7 +321,6 @@ export default function About() {
               </motion.div>
             </div>
 
-            {/* RIGHT — Text */}
             <div className="col-span-12 lg:col-span-7">
               <RevealLine
                 delay={0.15}
@@ -429,7 +395,6 @@ export default function About() {
             </div>
           </div>
 
-          {/* Marquee */}
           <div className="mt-28 overflow-hidden">
             <motion.div
               initial={{ opacity: 0 }}

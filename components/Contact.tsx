@@ -2,8 +2,6 @@
 
 import { useRef, useState, useEffect } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
   Send,
   Phone,
@@ -12,8 +10,6 @@ import {
   ArrowUpRight,
   CheckCircle,
 } from "lucide-react";
-
-gsap.registerPlugin(ScrollTrigger);
 
 function FloatingInput({
   label,
@@ -179,33 +175,11 @@ function ContactRow({
 
 export default function Contact() {
   const sectionRef = useRef<HTMLElement>(null);
-  const innerWrapperRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(headingRef, { once: true, margin: "-80px" });
 
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        innerWrapperRef.current,
-        { borderRadius: "2.5rem 2.5rem 0 0" },
-        {
-          borderRadius: "0rem 0rem 0 0",
-          ease: "none",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 95%",
-            end: "top 0%",
-            scrub: true,
-          },
-        },
-      );
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -224,12 +198,12 @@ export default function Contact() {
       className="relative sticky top-0 z-50 min-h-screen"
     >
       <div
-        ref={innerWrapperRef}
-        className="relative overflow-hidden py-24 min-h-screen flex flex-col justify-center"
+        // Mengubah animasi GSAP border-radius menjadi statis rounded-t-[2.5rem]
+        // Menghapus shadow besar yang bikin lag
+        className="relative overflow-hidden py-24 min-h-screen flex flex-col justify-center rounded-t-[2.5rem] md:rounded-t-[3rem]"
         style={{
           background: "#0C0512",
-          boxShadow: "0 -40px 120px rgba(0,0,0,0.9)",
-          willChange: "border-radius",
+          borderTop: "1px solid rgba(168,85,247,0.2)",
         }}
       >
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-purple-500/60 to-transparent pointer-events-none" />
@@ -240,7 +214,7 @@ export default function Contact() {
             style={{
               background:
                 "radial-gradient(circle, rgba(109,40,217,0.12) 0%, transparent 70%)",
-              filter: "blur(80px)",
+              filter: "blur(60px)",
             }}
           />
           <div
@@ -248,7 +222,7 @@ export default function Contact() {
             style={{
               background:
                 "radial-gradient(circle, rgba(192,132,252,0.06) 0%, transparent 70%)",
-              filter: "blur(60px)",
+              filter: "blur(40px)",
             }}
           />
           <div

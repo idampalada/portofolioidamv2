@@ -6,17 +6,12 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 
-// WAJIB IMPORT GSAP
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 type TabType = "projects" | "services" | "tech";
-
-// ─── Data ─────────────────────────────────────────────────────────────────────
 
 const projects = [
   {
@@ -147,8 +142,6 @@ const techStack = [
   { src: "/typescript.svg", name: "TypeScript" },
 ];
 
-// ─── Sub-Components ───────────────────────────────────────────────────────────
-
 function TabBtn({
   active,
   onClick,
@@ -188,8 +181,18 @@ function ProjectCard({
   index: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
   const [hovered, setHovered] = useState(false);
+
+  // Play video hanya saat di-hover
+  useEffect(() => {
+    if (hovered) {
+      videoRef.current?.play().catch(() => {});
+    } else {
+      videoRef.current?.pause();
+    }
+  }, [hovered]);
 
   return (
     <motion.div
@@ -217,13 +220,15 @@ function ProjectCard({
           transition={{ duration: 0.6 }}
           className="w-full h-full"
         >
+          {/* Menggunakan preload="metadata" dan #t=0.001 untuk ekstrak frame pertama */}
           <video
-            src={project.media}
-            className="w-full h-full object-cover opacity-90"
+            ref={videoRef}
+            src={`${project.media}#t=0.001`}
+            className="w-full h-full object-cover opacity-90 transition-opacity duration-300"
             muted
             loop
-            autoPlay
             playsInline
+            preload="metadata"
           />
         </motion.div>
         <div className="absolute top-3 left-3 z-10">
@@ -265,32 +270,28 @@ function ProjectCard({
   );
 }
 
-// ─── Main Section ─────────────────────────────────────────────────────────────
-
 export default function Portfolio() {
   const [activeTab, setActiveTab] = useState<TabType>("projects");
   const sectionRef = useRef<HTMLElement>(null);
 
-  // 1. GSAP Pinning untuk menggantikan CSS Sticky yang bermasalah
   useEffect(() => {
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
         trigger: sectionRef.current,
-        start: "bottom bottom", // Section ini akan di-PIN saat bagian bawahnya menyentuh batas bawah layar
-        end: () => "+=" + window.innerHeight, // Pin dilepas saat digeser sejauh tinggi 1 layar (tinggi section Contact)
+        start: "bottom bottom",
+        end: () => "+=" + window.innerHeight,
         pin: true,
-        pinSpacing: false, // Penting: Ini membiarkan section Contact di bawahnya tetap naik menimpa
+        pinSpacing: false,
       });
     }, sectionRef);
 
     return () => ctx.revert();
   }, []);
 
-  // 2. Refresh ScrollTrigger ketika ganti tab (karena tinggi konten akan berubah)
   useEffect(() => {
     const timer = setTimeout(() => {
       ScrollTrigger.refresh();
-    }, 600); // Waktu yang cukup setelah animasi framer-motion selesai
+    }, 600);
     return () => clearTimeout(timer);
   }, [activeTab]);
 
@@ -298,16 +299,13 @@ export default function Portfolio() {
     <section
       id="portfolio"
       ref={sectionRef}
-      // Class dikembalikan seperti desain original Anda (hanya relative z-40)
       className="relative z-40 bg-[#0C0512] min-h-screen py-24 overflow-hidden"
       style={{
-        boxShadow: "0 -50px 100px rgba(0,0,0,0.9)",
+        borderTop: "1px solid rgba(168,85,247,0.15)",
       }}
     >
-      {/* Divider Glow */}
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-purple-500/40 to-transparent pointer-events-none" />
 
-      {/* Decorative Background Glow */}
       <div className="absolute inset-0 -z-10 pointer-events-none">
         <div
           className="absolute top-[20%] right-[-10%] w-[600px] h-[600px] rounded-full"
@@ -320,7 +318,6 @@ export default function Portfolio() {
       </div>
 
       <div className="max-w-[1320px] mx-auto px-6 md:px-10 lg:px-16 relative z-10">
-        {/* Label */}
         <div className="flex items-center gap-4 mb-6">
           <div className="h-px w-12 bg-purple-500" />
           <span className="text-purple-400 text-xs tracking-[0.25em] uppercase font-medium">
@@ -328,7 +325,6 @@ export default function Portfolio() {
           </span>
         </div>
 
-        {/* Heading */}
         <div className="mb-14">
           <h2 className="text-[clamp(40px,8vw,100px)] font-black leading-[0.9] tracking-tight">
             <span className="text-white">Selected </span>
@@ -341,7 +337,6 @@ export default function Portfolio() {
           </h2>
         </div>
 
-        {/* Tab Controls */}
         <div className="flex justify-center mb-16">
           <div className="flex gap-1 p-1.5 rounded-full bg-white/[0.03] border border-white/10 backdrop-blur-md">
             {(["projects", "services", "tech"] as const).map((key) => (
@@ -356,7 +351,6 @@ export default function Portfolio() {
           </div>
         </div>
 
-        {/* Content Area */}
         <div className="relative min-h-[600px]">
           <AnimatePresence mode="wait">
             <motion.div
