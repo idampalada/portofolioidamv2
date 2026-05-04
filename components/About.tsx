@@ -169,9 +169,8 @@ export default function About() {
 
   return (
     // Tambahkan <div> pembungkus dengan z-index 20
-    <div ref={containerRef} className="relative z-20 bg-[#0C0512]">
+    <div ref={containerRef} id="about" className="relative z-20 bg-[#0C0512]">
       <section
-        id="about-section"
         ref={sectionRef}
         // Hapus 'sticky top-0' dan zIndex dari sini
         className="relative"

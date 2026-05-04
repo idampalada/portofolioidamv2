@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   motion,
   AnimatePresence,
@@ -23,15 +22,18 @@ const MENU = [
 function NavLink({
   item,
   active,
+  onClick,
 }: {
   item: (typeof MENU)[0];
   active: boolean;
+  onClick: (e: React.MouseEvent<HTMLAnchorElement>, href: string) => void;
 }) {
   return (
     <li>
-      <Link
+      <a
         href={item.href}
-        className="relative text-sm font-medium transition-colors duration-200 py-1"
+        onClick={(e) => onClick(e, item.href)}
+        className="relative text-sm font-medium transition-colors duration-200 py-1 cursor-pointer"
         style={{ color: active ? "#e2d9f3" : "rgba(148,163,184,0.75)" }}
       >
         {item.label}
@@ -43,7 +45,7 @@ function NavLink({
             transition={{ type: "spring", stiffness: 380, damping: 28 }}
           />
         )}
-      </Link>
+      </a>
     </li>
   );
 }
@@ -61,25 +63,60 @@ export default function Navbar() {
     setScrolled(y > 40);
   });
 
-  // Active section tracker
+  // Manual Scroll Handler (memaksa status aktif secara instan)
+  const handleScroll = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
+    e.preventDefault();
+    const targetId = href.replace("#", "");
+
+    // Secara instan set status aktif ke menu yang diklik
+    setActiveSection(targetId);
+
+    const element = document.getElementById(targetId);
+    if (element) {
+      const offset = 80; // Sesuaikan dengan tinggi navbar
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
+
+      setIsOpen(false);
+    }
+  };
+
+  // Active section tracker (diperlunak agar tidak nyangkut saat scroll)
   useEffect(() => {
     const ids = MENU.map((m) => m.href.replace("#", ""));
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) setActiveSection(entry.target.id);
+          // Hanya set aktif jika section mulai terlihat mendominasi
+          if (entry.isIntersecting && entry.intersectionRatio > 0.2) {
+            setActiveSection(entry.target.id);
+          }
         });
       },
-      { rootMargin: "-40% 0px -55% 0px" },
+      {
+        // Fokuskan deteksi pada area tengah-atas layar
+        rootMargin: "-20% 0px -60% 0px",
+        threshold: [0.2, 0.5],
+      },
     );
+
     ids.forEach((id) => {
       const el = document.getElementById(id);
       if (el) observer.observe(el);
     });
+
     return () => observer.disconnect();
   }, []);
 
-  // Lock body scroll when mobile menu open
+  // Lock body scroll saat mobile menu terbuka
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
     return () => {
@@ -111,7 +148,11 @@ export default function Navbar() {
         {/* ── DESKTOP ── */}
         <nav className="hidden md:grid grid-cols-3 items-center h-20 px-8 lg:px-16 relative">
           {/* Logo */}
-          <Link href="#hero" className="flex items-center gap-3 group w-fit">
+          <a
+            href="#hero"
+            onClick={(e) => handleScroll(e, "#hero")}
+            className="flex items-center gap-3 group w-fit"
+          >
             <motion.div
               whileHover={{ rotate: 15, scale: 1.1 }}
               transition={{ duration: 0.3 }}
@@ -124,8 +165,7 @@ export default function Navbar() {
                 className="object-contain"
               />
             </motion.div>
-            <span className="text-sm font-bold text-white tracking-tight"></span>
-          </Link>
+          </a>
 
           {/* Menu */}
           <ul className="flex justify-center items-center gap-8 list-none">
@@ -134,6 +174,7 @@ export default function Navbar() {
                 key={item.label}
                 item={item}
                 active={activeSection === item.href.replace("#", "")}
+                onClick={handleScroll}
               />
             ))}
           </ul>
@@ -141,8 +182,9 @@ export default function Navbar() {
           {/* CTA */}
           <div className="flex justify-end">
             <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-              <Link
+              <a
                 href="#contact"
+                onClick={(e) => handleScroll(e, "#contact")}
                 className="relative inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold text-white overflow-hidden group"
                 style={{
                   background: "rgba(109,40,217,0.5)",
@@ -163,17 +205,20 @@ export default function Navbar() {
                   style={{ boxShadow: "0 0 6px rgba(74,222,128,0.8)" }}
                 />
                 Hire me
-              </Link>
+              </a>
             </motion.div>
           </div>
         </nav>
 
         {/* ── MOBILE ── */}
         <nav className="md:hidden flex items-center justify-between h-16 px-6 relative">
-          <Link href="#hero" className="flex items-center gap-2.5">
+          <a
+            href="#hero"
+            onClick={(e) => handleScroll(e, "#hero")}
+            className="flex items-center gap-2.5"
+          >
             <Image src="/logoidam.svg" alt="Logo" width={26} height={26} />
-            <span className="text-sm font-bold text-white"></span>
-          </Link>
+          </a>
 
           {/* Hamburger */}
           <motion.button
@@ -247,10 +292,10 @@ export default function Navbar() {
                         ease: [0.22, 1, 0.36, 1],
                       }}
                     >
-                      <Link
+                      <a
                         href={item.href}
-                        onClick={() => setIsOpen(false)}
-                        className="flex items-center justify-between py-4 group"
+                        onClick={(e) => handleScroll(e, item.href)}
+                        className="flex items-center justify-between py-4 group cursor-pointer"
                         style={{
                           borderBottom: "1px solid rgba(167,139,250,0.08)",
                         }}
@@ -278,7 +323,7 @@ export default function Navbar() {
                         >
                           ●
                         </motion.span>
-                      </Link>
+                      </a>
                     </motion.li>
                   ))}
                 </ul>
@@ -298,9 +343,9 @@ export default function Navbar() {
                 </p>
 
                 <div className="flex gap-3">
-                  <Link
+                  <a
                     href="#portfolio"
-                    onClick={() => setIsOpen(false)}
+                    onClick={(e) => handleScroll(e, "#portfolio")}
                     className="flex-1 py-3 rounded-full text-center text-xs font-semibold text-purple-300 transition-all duration-200"
                     style={{
                       background: "rgba(109,40,217,0.15)",
@@ -308,10 +353,10 @@ export default function Navbar() {
                     }}
                   >
                     View Work
-                  </Link>
-                  <Link
+                  </a>
+                  <a
                     href="#contact"
-                    onClick={() => setIsOpen(false)}
+                    onClick={(e) => handleScroll(e, "#contact")}
                     className="flex-1 py-3 rounded-full text-center text-xs font-semibold text-white transition-all duration-200"
                     style={{
                       background: "rgba(109,40,217,0.6)",
@@ -319,7 +364,7 @@ export default function Navbar() {
                     }}
                   >
                     Hire me
-                  </Link>
+                  </a>
                 </div>
 
                 {/* Socials */}

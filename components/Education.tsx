@@ -279,8 +279,12 @@ export default function Education() {
 
   return (
     // DIV PEMBUNGKUS untuk menghindari error "removeChild"
-    <div ref={containerRef} className="relative z-30 bg-[#0C0512]">
-      <section id="education" ref={sectionRef} className="relative">
+    <div
+      ref={containerRef}
+      id="education"
+      className="relative z-30 bg-[#0C0512]"
+    >
+      <section ref={sectionRef} className="relative">
         <div
           ref={innerWrapperRef}
           className="relative overflow-hidden py-24 md:py-32"

@@ -134,7 +134,7 @@ export default function Hero() {
   const [typed, setTyped] = useState("");
   const [deleting, setDeleting] = useState(false);
 
-  const containerRef = useRef<HTMLDivElement>(null); // Tambahkan containerRef
+  const containerRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const nameLineRef = useRef<HTMLDivElement>(null);
@@ -287,12 +287,10 @@ export default function Hero() {
   const imgSpringY = useSpring(imgY, { stiffness: 120, damping: 22 });
 
   return (
-    // Tambahkan <div> pembungkus dengan z-index 10
-    <div ref={containerRef} className="relative z-10 bg-[#0C0512]">
+    // PENTING: id="hero" dipindahkan ke sini
+    <div ref={containerRef} id="hero" className="relative z-10 bg-[#0C0512]">
       <section
-        id="hero"
-        ref={sectionRef}
-        // Hapus 'sticky top-0 h-screen' dan pindahkan kontrol sepenuhnya ke GSAP
+        ref={sectionRef} // id="hero" dihapus dari sini
         className="relative overflow-hidden min-h-screen"
       >
         <div ref={cardRef} className="absolute inset-0">
