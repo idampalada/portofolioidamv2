@@ -229,6 +229,7 @@ function ColumnHeader({
 // ─── Main Section ─────────────────────────────────────────────────────────────
 
 export default function Education() {
+  const containerRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const innerWrapperRef = useRef<HTMLDivElement>(null);
 
@@ -240,167 +241,159 @@ export default function Education() {
   const glowY = useTransform(scrollYProgress, [0, 1], ["-8%", "8%"]);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      // Animasi flattening border radius saat discroll
-      gsap.fromTo(
-        innerWrapperRef.current,
-        { borderRadius: "2.5rem 2.5rem 0 0" },
-        {
-          borderRadius: "0rem 0rem 0 0",
-          ease: "none",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 95%",
-            end: "top 0%",
-            scrub: true,
+    // Timeout untuk memastikan DOM sudah siap sebelum GSAP jalan
+    const timer = setTimeout(() => {
+      // Gunakan containerRef sebagai scope agar GSAP tidak berkonflik dengan React
+      const ctx = gsap.context(() => {
+        // Animasi flattening border radius saat discroll
+        gsap.fromTo(
+          innerWrapperRef.current,
+          { borderRadius: "2.5rem 2.5rem 0 0" },
+          {
+            borderRadius: "0rem 0rem 0 0",
+            ease: "none",
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: "top 95%",
+              end: "top 0%",
+              scrub: true,
+            },
           },
-        },
-      );
-    }, sectionRef);
+        );
 
-    return () => ctx.revert();
+        // Kunci (Pin) section Education saat mencapai bawah
+        ScrollTrigger.create({
+          trigger: sectionRef.current,
+          start: "bottom bottom",
+          end: "+=100%",
+          pin: true,
+          pinSpacing: false, // Memastikan elemen selanjutnya (Portfolio) bisa menimpa
+        });
+      }, containerRef);
+
+      return () => ctx.revert();
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, []);
 
   return (
-    <section
-      id="education"
-      ref={sectionRef}
-      /**
-       * PERUBAHAN UTAMA:
-       * sticky top-0 dan z-30 memastikan section ini diam
-       * saat Portfolio (z-40) meluncur naik menimpanya.
-       */
-      className="relative sticky top-0 z-30 min-h-screen bg-[#0C0512]"
-    >
-      <div
-        ref={innerWrapperRef}
-        /**
-         * min-h-screen dan flex flex-col justify-center
-         * membuat konten tetap berada di tengah layar saat sticky.
-         */
-        className="relative overflow-hidden py-24 md:py-32 min-h-screen flex flex-col justify-center"
-        style={{
-          background: "#0C0512",
-          boxShadow: "0 -40px 120px rgba(0,0,0,0.9)",
-          willChange: "border-radius",
-        }}
-      >
-        {/* Glowing top edge line */}
+    // DIV PEMBUNGKUS untuk menghindari error "removeChild"
+    <div ref={containerRef} className="relative z-30 bg-[#0C0512]">
+      <section id="education" ref={sectionRef} className="relative">
         <div
-          className="absolute top-0 left-0 right-0 h-px pointer-events-none"
+          ref={innerWrapperRef}
+          className="relative overflow-hidden py-24 md:py-32"
           style={{
-            background:
-              "linear-gradient(to right, transparent, rgba(168,85,247,0.6), transparent)",
+            background: "#0C0512",
+            boxShadow: "0 -40px 120px rgba(0,0,0,0.9)",
+            willChange: "border-radius",
           }}
-        />
-
-        {/* Background elements */}
-        <div className="absolute inset-0 -z-10">
-          <motion.div
-            style={{
-              y: glowY,
-              background:
-                "radial-gradient(circle, rgba(109,40,217,0.12) 0%, transparent 70%)",
-              filter: "blur(80px)",
-            }}
-            className="absolute right-[-10%] top-[20%] w-[600px] h-[600px] rounded-full pointer-events-none"
-          />
+        >
+          {/* Glowing top edge line */}
           <div
-            className="absolute inset-0 opacity-[0.025]"
+            className="absolute top-0 left-0 right-0 h-px pointer-events-none"
             style={{
-              backgroundImage:
-                "linear-gradient(to right, #a855f7 1px, transparent 1px), linear-gradient(to bottom, #a855f7 1px, transparent 1px)",
-              backgroundSize: "60px 60px",
+              background:
+                "linear-gradient(to right, transparent, rgba(168,85,247,0.6), transparent)",
             }}
           />
-        </div>
 
-        <div className="max-w-[1320px] mx-auto px-6 md:px-10 lg:px-16 w-full">
-          {/* Section Label */}
-          <div className="flex items-center gap-4 mb-6">
+          {/* Background elements */}
+          <div className="absolute inset-0 -z-10">
             <motion.div
-              initial={{ scaleX: 0 }}
-              whileInView={{ scaleX: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              className="h-px w-12 bg-purple-500 origin-left"
+              style={{
+                y: glowY,
+                background:
+                  "radial-gradient(circle, rgba(109,40,217,0.12) 0%, transparent 70%)",
+                filter: "blur(80px)",
+              }}
+              className="absolute right-[-10%] top-[20%] w-[600px] h-[600px] rounded-full pointer-events-none"
             />
-            <motion.span
-              initial={{ opacity: 0, x: 10 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="text-purple-400 text-xs tracking-[0.25em] uppercase font-medium"
-            >
-              Background
-            </motion.span>
+            <div
+              className="absolute inset-0 opacity-[0.025]"
+              style={{
+                backgroundImage:
+                  "linear-gradient(to right, #a855f7 1px, transparent 1px), linear-gradient(to bottom, #a855f7 1px, transparent 1px)",
+                backgroundSize: "60px 60px",
+              }}
+            />
           </div>
 
-          {/* Heading */}
-          <div className="mb-16 md:mb-20 overflow-hidden">
-            <motion.h2
-              initial={{ y: "105%", opacity: 0 }}
-              whileInView={{ y: "0%", opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-              className="text-[clamp(40px,8vw,90px)] font-black leading-[0.9] tracking-tight"
-            >
-              <span className="text-white">Education </span>
-              <span
-                className="text-transparent"
-                style={{ WebkitTextStroke: "1px rgba(168,85,247,0.45)" }}
-              >
-                & Work
-              </span>
-            </motion.h2>
-          </div>
-
-          {/* Two Column Timeline */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 xl:gap-24">
-            <div>
-              <ColumnHeader label="Academic" title="My Education" delay={0} />
-              <div className="space-y-2">
-                {educationData.map((item, i) => (
-                  <TimelineCard key={i} item={item} index={i} />
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <ColumnHeader
-                label="Professional"
-                title="My Experience"
-                delay={0.15}
+          <div className="max-w-[1320px] mx-auto px-6 md:px-10 lg:px-16 w-full">
+            {/* Section Label */}
+            <div className="flex items-center gap-4 mb-6">
+              <motion.div
+                initial={{ scaleX: 0 }}
+                whileInView={{ scaleX: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                className="h-px w-12 bg-purple-500 origin-left"
               />
-              <div className="space-y-2">
-                {experienceData.map((item, i) => (
-                  <TimelineCard key={i} item={item} index={i} />
-                ))}
+              <motion.span
+                initial={{ opacity: 0, x: 10 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="text-purple-400 text-xs tracking-[0.25em] uppercase font-medium"
+              >
+                Background
+              </motion.span>
+            </div>
+
+            {/* Heading */}
+            <div className="mb-16 md:mb-20 overflow-hidden">
+              <motion.h2
+                initial={{ y: "105%", opacity: 0 }}
+                whileInView={{ y: "0%", opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                className="text-[clamp(40px,8vw,90px)] font-black leading-[0.9] tracking-tight"
+              >
+                <span className="text-white">Education </span>
+                <span
+                  className="text-transparent"
+                  style={{ WebkitTextStroke: "1px rgba(168,85,247,0.45)" }}
+                >
+                  & Work
+                </span>
+              </motion.h2>
+            </div>
+
+            {/* Two Column Timeline */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 xl:gap-24">
+              <div>
+                <ColumnHeader label="Academic" title="My Education" delay={0} />
+                <div className="space-y-2">
+                  {educationData.map((item, i) => (
+                    <TimelineCard key={i} item={item} index={i} />
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <ColumnHeader
+                  label="Professional"
+                  title="My Experience"
+                  delay={0.15}
+                />
+                <div className="space-y-2">
+                  {experienceData.map((item, i) => (
+                    <TimelineCard key={i} item={item} index={i} />
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Bottom Marquee */}
-          <div className="mt-24 overflow-hidden">
-            <div className="w-full h-px bg-gradient-to-r from-transparent via-purple-800/40 to-transparent mb-10" />
-            <motion.div
-              className="flex gap-10 text-sm tracking-widest uppercase font-medium whitespace-nowrap"
-              animate={{ x: ["0%", "-50%"] }}
-              transition={{ duration: 25, ease: "linear", repeat: Infinity }}
-            >
-              {[
-                "Informatics Engineering",
-                "•",
-                "Web Development",
-                "•",
-                "IT Infrastructure",
-                "•",
-                "Product Management",
-                "•",
-                "System Design",
-                "•",
-              ]
-                .concat([
+            {/* Bottom Marquee */}
+            <div className="mt-24 overflow-hidden">
+              <div className="w-full h-px bg-gradient-to-r from-transparent via-purple-800/40 to-transparent mb-10" />
+              <motion.div
+                className="flex gap-10 text-sm tracking-widest uppercase font-medium whitespace-nowrap"
+                animate={{ x: ["0%", "-50%"] }}
+                transition={{ duration: 25, ease: "linear", repeat: Infinity }}
+              >
+                {[
                   "Informatics Engineering",
                   "•",
                   "Web Development",
@@ -411,22 +404,35 @@ export default function Education() {
                   "•",
                   "System Design",
                   "•",
-                ])
-                .map((item, i) => (
-                  <span
-                    key={i}
-                    className={
-                      item === "•" ? "text-purple-700" : "text-gray-600"
-                    }
-                  >
-                    {item}
-                  </span>
-                ))}
-            </motion.div>
-            <div className="w-full h-px bg-gradient-to-r from-transparent via-purple-800/40 to-transparent mt-10" />
+                ]
+                  .concat([
+                    "Informatics Engineering",
+                    "•",
+                    "Web Development",
+                    "•",
+                    "IT Infrastructure",
+                    "•",
+                    "Product Management",
+                    "•",
+                    "System Design",
+                    "•",
+                  ])
+                  .map((item, i) => (
+                    <span
+                      key={i}
+                      className={
+                        item === "•" ? "text-purple-700" : "text-gray-600"
+                      }
+                    >
+                      {item}
+                    </span>
+                  ))}
+              </motion.div>
+              <div className="w-full h-px bg-gradient-to-r from-transparent via-purple-800/40 to-transparent mt-10" />
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 }
