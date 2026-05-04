@@ -2,9 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
-import { ArrowUpRight, Play } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
+
+// WAJIB IMPORT GSAP
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -141,7 +147,7 @@ const techStack = [
   { src: "/typescript.svg", name: "TypeScript" },
 ];
 
-// ─── Tab Button ───────────────────────────────────────────────────────────────
+// ─── Sub-Components ───────────────────────────────────────────────────────────
 
 function TabBtn({
   active,
@@ -174,8 +180,6 @@ function TabBtn({
   );
 }
 
-// ─── Project Card ─────────────────────────────────────────────────────────────
-
 function ProjectCard({
   project,
   index,
@@ -207,11 +211,10 @@ function ProjectCard({
         boxShadow: hovered ? "0 20px 60px rgba(109,40,217,0.2)" : "none",
       }}
     >
-      {/* Video */}
       <div className="relative h-[380px] overflow-hidden bg-[#0a0514]">
         <motion.div
           animate={{ scale: hovered ? 1.05 : 1 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.6 }}
           className="w-full h-full"
         >
           <video
@@ -223,240 +226,41 @@ function ProjectCard({
             playsInline
           />
         </motion.div>
-
-        {/* Category badge */}
         <div className="absolute top-3 left-3 z-10">
-          <span
-            className="text-[9px] font-bold tracking-[0.14em] uppercase px-2.5 py-1 rounded-full"
-            style={{
-              background: "rgba(12,5,18,0.75)",
-              border: "1px solid rgba(168,85,247,0.3)",
-              color: "#c084fc",
-              backdropFilter: "blur(8px)",
-            }}
-          >
+          <span className="text-[9px] font-bold tracking-[0.14em] uppercase px-2.5 py-1 rounded-full bg-black/70 border border-purple-500/30 text-purple-300 backdrop-blur-md">
             {project.category}
           </span>
         </div>
-
-        {/* Overlay on hover */}
         <motion.div
-          className="absolute inset-0 flex items-center justify-center"
+          className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-[2px]"
           animate={{ opacity: hovered ? 1 : 0 }}
-          transition={{ duration: 0.3 }}
-          style={{
-            background: "rgba(12,5,18,0.55)",
-            backdropFilter: "blur(2px)",
-          }}
         >
           <div className="flex gap-3">
             {project.link && (
-              <motion.a
+              <a
                 href={project.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-white"
-                style={{
-                  background: "rgba(109,40,217,0.8)",
-                  border: "1px solid rgba(168,85,247,0.5)",
-                }}
+                className="px-4 py-2 rounded-full text-xs font-bold bg-purple-700/80 border border-purple-400 text-white flex items-center gap-2"
               >
-                <ArrowUpRight size={13} />
-                View Live
-              </motion.a>
+                <ArrowUpRight size={14} /> View Live
+              </a>
             )}
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-              <Link
-                href={`/project/${project.id}`}
-                onClick={(e) => e.stopPropagation()}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-white"
-                style={{
-                  background: "rgba(255,255,255,0.1)",
-                  border: "1px solid rgba(255,255,255,0.2)",
-                }}
-              >
-                Details →
-              </Link>
-            </motion.div>
+            <Link
+              href={`/project/${project.id}`}
+              className="px-4 py-2 rounded-full text-xs font-bold bg-white/10 border border-white/20 text-white"
+            >
+              Details →
+            </Link>
           </div>
         </motion.div>
       </div>
-
-      {/* Info */}
       <div className="p-5">
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <h3
-            className="font-bold text-white leading-tight"
-            style={{ fontSize: 16, letterSpacing: "-0.01em" }}
-          >
-            {project.title}
-          </h3>
-          <motion.div
-            animate={{ rotate: hovered ? 45 : 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <ArrowUpRight
-              size={16}
-              className="text-purple-500 flex-shrink-0 mt-0.5"
-            />
-          </motion.div>
-        </div>
-        <p className="text-gray-500 text-[13px] leading-relaxed">
+        <h3 className="font-bold text-white mb-2">{project.title}</h3>
+        <p className="text-gray-500 text-[13px] leading-relaxed line-clamp-2">
           {project.desc}
         </p>
       </div>
-
-      {/* Bottom progress line */}
-      <motion.div
-        className="absolute bottom-0 left-0 h-[2px]"
-        animate={{ width: hovered ? "100%" : "0%" }}
-        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        style={{
-          background: "linear-gradient(to right, #7c3aed, #c084fc)",
-        }}
-      />
-    </motion.div>
-  );
-}
-
-// ─── Service Card ─────────────────────────────────────────────────────────────
-
-function ServiceCard({
-  service,
-  index,
-}: {
-  service: (typeof services)[0];
-  index: number;
-}) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-40px" });
-  const [hovered, setHovered] = useState(false);
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 24 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{
-        duration: 0.6,
-        delay: (index % 3) * 0.08,
-        ease: [0.22, 1, 0.36, 1],
-      }}
-      onHoverStart={() => setHovered(true)}
-      onHoverEnd={() => setHovered(false)}
-      whileHover={{ y: -4 }}
-      className="relative p-5 rounded-2xl overflow-hidden cursor-default"
-      style={{
-        background: hovered
-          ? "rgba(255,255,255,0.05)"
-          : "rgba(255,255,255,0.025)",
-        border: `1px solid ${hovered ? "rgba(168,85,247,0.35)" : "rgba(168,85,247,0.12)"}`,
-        transition: "background 0.3s, border-color 0.3s",
-      }}
-    >
-      {/* Corner number */}
-      <div
-        className="absolute top-4 right-4 text-[10px] font-black tracking-wider tabular-nums transition-colors duration-300"
-        style={{ color: hovered ? "#7c3aed" : "rgba(109,40,217,0.3)" }}
-      >
-        {String(index + 1).padStart(2, "0")}
-      </div>
-
-      {/* Bottom bar */}
-      <motion.div
-        className="absolute bottom-0 left-0 h-[1.5px]"
-        animate={{ width: hovered ? "100%" : "0%" }}
-        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        style={{ background: "linear-gradient(to right, #7c3aed, #c084fc)" }}
-      />
-
-      {/* Corner glow */}
-      <div
-        className="absolute top-0 left-0 w-20 h-20 rounded-full pointer-events-none transition-opacity duration-500"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(167,139,250,0.1), transparent 70%)",
-          opacity: hovered ? 1 : 0,
-          transform: "translate(-30%, -30%)",
-        }}
-      />
-
-      <div
-        className="text-xl mb-3 transition-colors duration-300"
-        style={{ color: hovered ? "#c084fc" : "#7c3aed" }}
-      >
-        {service.icon}
-      </div>
-      <h4
-        className="font-bold text-white mb-1 leading-snug"
-        style={{ fontSize: 14, letterSpacing: "-0.01em" }}
-      >
-        {service.label}
-      </h4>
-      <p
-        className="text-[12px] leading-relaxed"
-        style={{ color: "rgba(148,163,184,0.65)" }}
-      >
-        {service.desc}
-      </p>
-    </motion.div>
-  );
-}
-
-// ─── Tech Card ────────────────────────────────────────────────────────────────
-
-function TechCard({
-  tech,
-  index,
-}: {
-  tech: (typeof techStack)[0];
-  index: number;
-}) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-40px" });
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, scale: 0.85 }}
-      animate={isInView ? { opacity: 1, scale: 1 } : {}}
-      transition={{
-        duration: 0.5,
-        delay: index * 0.05,
-        ease: [0.22, 1, 0.36, 1],
-      }}
-      className="flex flex-col items-center justify-center gap-3 p-5 rounded-2xl cursor-default group"
-      style={{
-        background: "rgba(255,255,255,0.025)",
-        border: "1px solid rgba(168,85,247,0.12)",
-        aspectRatio: "1",
-        minHeight: 110,
-      }}
-      whileHover={{
-        background: "rgba(109,40,217,0.08)",
-        borderColor: "rgba(168,85,247,0.35)",
-        y: -6,
-        scale: 1.05,
-        boxShadow: "0 16px 40px rgba(109,40,217,0.2)",
-      }}
-    >
-      <div className="w-10 h-10 relative flex-shrink-0">
-        <Image
-          src={tech.src}
-          alt={tech.name}
-          fill
-          className="object-contain opacity-75 group-hover:opacity-100 transition-opacity duration-300"
-        />
-      </div>
-      <p
-        className="text-[11px] font-medium text-center leading-tight"
-        style={{ color: "rgba(148,163,184,0.7)" }}
-      >
-        {tech.name}
-      </p>
     </motion.div>
   );
 }
@@ -467,161 +271,153 @@ export default function Portfolio() {
   const [activeTab, setActiveTab] = useState<TabType>("projects");
   const sectionRef = useRef<HTMLElement>(null);
 
-  const tabVariants = {
-    initial: { opacity: 0, y: 16 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -12 },
-  };
+  // 1. GSAP Pinning untuk menggantikan CSS Sticky yang bermasalah
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      ScrollTrigger.create({
+        trigger: sectionRef.current,
+        start: "bottom bottom", // Section ini akan di-PIN saat bagian bawahnya menyentuh batas bawah layar
+        end: () => "+=" + window.innerHeight, // Pin dilepas saat digeser sejauh tinggi 1 layar (tinggi section Contact)
+        pin: true,
+        pinSpacing: false, // Penting: Ini membiarkan section Contact di bawahnya tetap naik menimpa
+      });
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  // 2. Refresh ScrollTrigger ketika ganti tab (karena tinggi konten akan berubah)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 600); // Waktu yang cukup setelah animasi framer-motion selesai
+    return () => clearTimeout(timer);
+  }, [activeTab]);
 
   return (
     <section
       id="portfolio"
       ref={sectionRef}
-      className="relative scroll-mt-24 overflow-hidden py-24 md:py-12"
+      // Class dikembalikan seperti desain original Anda (hanya relative z-40)
+      className="relative z-40 bg-[#0C0512] min-h-screen py-24 overflow-hidden"
+      style={{
+        boxShadow: "0 -50px 100px rgba(0,0,0,0.9)",
+      }}
     >
-      {/* ── BACKGROUND ── */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-[#0C0512]" />
+      {/* Divider Glow */}
+      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-purple-500/40 to-transparent pointer-events-none" />
+
+      {/* Decorative Background Glow */}
+      <div className="absolute inset-0 -z-10 pointer-events-none">
         <div
-          className="absolute top-[10%] left-[-10%] w-[500px] h-[500px] rounded-full pointer-events-none"
+          className="absolute top-[20%] right-[-10%] w-[600px] h-[600px] rounded-full"
           style={{
             background:
-              "radial-gradient(circle, rgba(109,40,217,0.1) 0%, transparent 70%)",
-            filter: "blur(80px)",
-          }}
-        />
-        <div
-          className="absolute inset-0 opacity-[0.025]"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle, #a855f7 1px, transparent 1px)",
-            backgroundSize: "50px 50px",
+              "radial-gradient(circle, rgba(109,40,217,0.06) 0%, transparent 70%)",
+            filter: "blur(100px)",
           }}
         />
       </div>
 
-      <div className="max-w-[1320px] mx-auto px-6 md:px-10 lg:px-16">
-        {/* ── SECTION LABEL ── */}
+      <div className="max-w-[1320px] mx-auto px-6 md:px-10 lg:px-16 relative z-10">
+        {/* Label */}
         <div className="flex items-center gap-4 mb-6">
-          <motion.div
-            initial={{ scaleX: 0 }}
-            whileInView={{ scaleX: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="h-px w-12 bg-purple-500 origin-left"
-          />
-          <motion.span
-            initial={{ opacity: 0, x: 10 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="text-purple-400 text-xs tracking-[0.25em] uppercase font-medium"
-          >
+          <div className="h-px w-12 bg-purple-500" />
+          <span className="text-purple-400 text-xs tracking-[0.25em] uppercase font-medium">
             Work
-          </motion.span>
+          </span>
         </div>
 
-        {/* ── HEADING ── */}
-        <div className="mb-14 overflow-hidden">
-          <motion.h2
-            initial={{ y: "105%", opacity: 0 }}
-            whileInView={{ y: "0%", opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-            className="text-[clamp(40px,8vw,100px)] font-black leading-[0.9] tracking-tight"
-          >
+        {/* Heading */}
+        <div className="mb-14">
+          <h2 className="text-[clamp(40px,8vw,100px)] font-black leading-[0.9] tracking-tight">
             <span className="text-white">Selected </span>
             <span
               className="text-transparent"
-              style={{ WebkitTextStroke: "1px rgba(168,85,247,0.45)" }}
+              style={{ WebkitTextStroke: "1px rgba(168,85,247,0.4)" }}
             >
               Projects
             </span>
-          </motion.h2>
+          </h2>
         </div>
 
-        {/* ── TABS ── */}
-        <div className="flex justify-center mb-12">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="flex gap-1 p-1.5 rounded-full"
-            style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(168,85,247,0.15)",
-            }}
-          >
-            {[
-              { key: "projects", label: "Projects" },
-              { key: "services", label: "Services" },
-              { key: "tech", label: "Tech Stack" },
-            ].map((tab) => (
+        {/* Tab Controls */}
+        <div className="flex justify-center mb-16">
+          <div className="flex gap-1 p-1.5 rounded-full bg-white/[0.03] border border-white/10 backdrop-blur-md">
+            {(["projects", "services", "tech"] as const).map((key) => (
               <TabBtn
-                key={tab.key}
-                active={activeTab === tab.key}
-                onClick={() => setActiveTab(tab.key as TabType)}
+                key={key}
+                active={activeTab === key}
+                onClick={() => setActiveTab(key)}
               >
-                {tab.label}
+                {key.charAt(0).toUpperCase() + key.slice(1)}
               </TabBtn>
             ))}
-          </motion.div>
+          </div>
         </div>
 
-        {/* ── CONTENT ── */}
-        <AnimatePresence mode="wait">
-          {activeTab === "projects" && (
+        {/* Content Area */}
+        <div className="relative min-h-[600px]">
+          <AnimatePresence mode="wait">
             <motion.div
-              key="projects"
-              variants={tabVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              key={activeTab}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -30 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {projects.map((project, i) => (
-                  <ProjectCard key={project.id} project={project} index={i} />
-                ))}
-              </div>
-            </motion.div>
-          )}
+              {activeTab === "projects" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {projects.map((project, i) => (
+                    <ProjectCard key={project.id} project={project} index={i} />
+                  ))}
+                </div>
+              )}
 
-          {activeTab === "services" && (
-            <motion.div
-              key="services"
-              variants={tabVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {services.map((service, i) => (
-                  <ServiceCard key={i} service={service} index={i} />
-                ))}
-              </div>
-            </motion.div>
-          )}
+              {activeTab === "services" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {services.map((service, i) => (
+                    <div
+                      key={i}
+                      className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-purple-500/30 transition-all"
+                    >
+                      <div className="text-2xl mb-4 text-purple-500">
+                        {service.icon}
+                      </div>
+                      <h4 className="text-white font-bold mb-2">
+                        {service.label}
+                      </h4>
+                      <p className="text-gray-500 text-sm">{service.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
 
-          {activeTab === "tech" && (
-            <motion.div
-              key="tech"
-              variants={tabVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                {techStack.map((tech, i) => (
-                  <TechCard key={tech.name} tech={tech} index={i} />
-                ))}
-              </div>
+              {activeTab === "tech" && (
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
+                  {techStack.map((tech, i) => (
+                    <div
+                      key={i}
+                      className="flex flex-col items-center justify-center p-6 rounded-2xl bg-white/[0.02] border border-white/5 aspect-square hover:bg-purple-500/5 transition-all group"
+                    >
+                      <div className="w-12 h-12 relative mb-3 grayscale group-hover:grayscale-0 transition-all duration-500">
+                        <Image
+                          src={tech.src}
+                          alt={tech.name}
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                      <span className="text-[10px] text-gray-500 uppercase tracking-widest">
+                        {tech.name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </motion.div>
-          )}
-        </AnimatePresence>
+          </AnimatePresence>
+        </div>
       </div>
     </section>
   );

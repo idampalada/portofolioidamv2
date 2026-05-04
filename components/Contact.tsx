@@ -1,7 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
   Send,
   Phone,
@@ -11,7 +13,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 
-// ─── Floating Label Input ─────────────────────────────────────────────────────
+gsap.registerPlugin(ScrollTrigger);
 
 function FloatingInput({
   label,
@@ -99,8 +101,6 @@ function FloatingTextarea({ label, name }: { label: string; name: string }) {
   );
 }
 
-// ─── Contact Info Row ─────────────────────────────────────────────────────────
-
 function ContactRow({
   icon: Icon,
   label,
@@ -136,7 +136,6 @@ function ContactRow({
         cursor: href ? "pointer" : "default",
       }}
     >
-      {/* Icon */}
       <motion.div
         animate={{ rotate: hovered ? 10 : 0, scale: hovered ? 1.1 : 1 }}
         transition={{ duration: 0.3 }}
@@ -178,14 +177,35 @@ function ContactRow({
   );
 }
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
-
 export default function Contact() {
   const sectionRef = useRef<HTMLElement>(null);
+  const innerWrapperRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(headingRef, { once: true, margin: "-80px" });
+
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        innerWrapperRef.current,
+        { borderRadius: "2.5rem 2.5rem 0 0" },
+        {
+          borderRadius: "0rem 0rem 0 0",
+          ease: "none",
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top 95%",
+            end: "top 0%",
+            scrub: true,
+          },
+        },
+      );
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -201,296 +221,303 @@ export default function Contact() {
     <section
       id="contact"
       ref={sectionRef}
-      className="relative scroll-mt-24 overflow-hidden py-24 md:py-12"
+      className="relative sticky top-0 z-50 min-h-screen"
     >
-      {/* ── BACKGROUND ── */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-[#0C0512]" />
-        <div
-          className="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] rounded-full pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(109,40,217,0.12) 0%, transparent 70%)",
-            filter: "blur(80px)",
-          }}
-        />
-        <div
-          className="absolute top-[20%] left-[-10%] w-[400px] h-[400px] rounded-full pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(192,132,252,0.06) 0%, transparent 70%)",
-            filter: "blur(60px)",
-          }}
-        />
-        <div
-          className="absolute inset-0 opacity-[0.025]"
-          style={{
-            backgroundImage:
-              "linear-gradient(to right, #a855f7 1px, transparent 1px), linear-gradient(to bottom, #a855f7 1px, transparent 1px)",
-            backgroundSize: "60px 60px",
-          }}
-        />
-      </div>
+      <div
+        ref={innerWrapperRef}
+        className="relative overflow-hidden py-24 min-h-screen flex flex-col justify-center"
+        style={{
+          background: "#0C0512",
+          boxShadow: "0 -40px 120px rgba(0,0,0,0.9)",
+          willChange: "border-radius",
+        }}
+      >
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-purple-500/60 to-transparent pointer-events-none" />
 
-      <div className="max-w-[1320px] mx-auto px-6 md:px-10 lg:px-16">
-        {/* ── SECTION LABEL ── */}
-        <div className="flex items-center gap-4 mb-6">
-          <motion.div
-            initial={{ scaleX: 0 }}
-            whileInView={{ scaleX: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="h-px w-12 bg-purple-500 origin-left"
-          />
-          <motion.span
-            initial={{ opacity: 0, x: 10 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="text-purple-400 text-xs tracking-[0.25em] uppercase font-medium"
-          >
-            Contact
-          </motion.span>
-        </div>
-
-        {/* ── HEADING ── */}
-        <div ref={headingRef} className="mb-16 md:mb-24 overflow-hidden">
-          <motion.h2
-            initial={{ y: "105%", opacity: 0 }}
-            animate={isInView ? { y: "0%", opacity: 1 } : {}}
-            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-            className="text-[clamp(40px,8vw,100px)] font-black leading-[0.9] tracking-tight"
-          >
-            <span className="text-white">Let's </span>
-            <span
-              className="text-transparent"
-              style={{ WebkitTextStroke: "1px rgba(168,85,247,0.45)" }}
-            >
-              Connect
-            </span>
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="text-gray-500 text-base mt-4 max-w-md"
-          >
-            Have a project in mind? Let's talk. I'll get back to you within 24
-            hours.
-          </motion.p>
-        </div>
-
-        {/* ── GRID ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
-          {/* LEFT — FORM */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="lg:col-span-7 relative rounded-3xl p-7 md:p-10"
+        <div className="absolute inset-0 -z-10 pointer-events-none">
+          <div
+            className="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] rounded-full"
             style={{
-              background: "rgba(255,255,255,0.025)",
-              border: "1px solid rgba(167,139,250,0.15)",
-              boxShadow:
-                "0 0 80px rgba(109,40,217,0.12), inset 0 1px 0 rgba(255,255,255,0.05)",
+              background:
+                "radial-gradient(circle, rgba(109,40,217,0.12) 0%, transparent 70%)",
+              filter: "blur(80px)",
             }}
-          >
-            {/* Corner accent */}
-            <div
-              className="absolute top-0 right-0 w-40 h-40 rounded-full pointer-events-none"
-              style={{
-                background:
-                  "radial-gradient(circle, rgba(167,139,250,0.08), transparent 70%)",
-                transform: "translate(30%, -30%)",
-              }}
+          />
+          <div
+            className="absolute top-[20%] left-[-10%] w-[400px] h-[400px] rounded-full"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(192,132,252,0.06) 0%, transparent 70%)",
+              filter: "blur(60px)",
+            }}
+          />
+          <div
+            className="absolute inset-0 opacity-[0.025]"
+            style={{
+              backgroundImage:
+                "linear-gradient(to right, #a855f7 1px, transparent 1px), linear-gradient(to bottom, #a855f7 1px, transparent 1px)",
+              backgroundSize: "60px 60px",
+            }}
+          />
+        </div>
+
+        <div className="max-w-[1320px] mx-auto px-6 md:px-10 lg:px-16 w-full relative z-10">
+          <div className="flex items-center gap-4 mb-6">
+            <motion.div
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              className="h-px w-12 bg-purple-500 origin-left"
             />
+            <motion.span
+              initial={{ opacity: 0, x: 10 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="text-purple-400 text-xs tracking-[0.25em] uppercase font-medium"
+            >
+              Contact
+            </motion.span>
+          </div>
 
-            <div className="mb-8">
-              <h3 className="text-2xl md:text-3xl font-black text-white mb-2 tracking-tight">
-                Send a message
-              </h3>
-              <p className="text-gray-500 text-sm">
-                I design and build things I love. Let's make something together.
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <FloatingInput label="First name" name="firstName" />
-                <FloatingInput label="Last name" name="lastName" />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <FloatingInput
-                  label="Email address"
-                  type="email"
-                  name="email"
-                />
-                <FloatingInput label="Phone number" type="tel" name="phone" />
-              </div>
-              <FloatingTextarea label="Your message" name="message" />
-
-              <motion.button
-                type="submit"
-                disabled={sending || sent}
-                whileHover={{ scale: sending || sent ? 1 : 1.02 }}
-                whileTap={{ scale: sending || sent ? 1 : 0.98 }}
-                className="w-full py-4 rounded-full font-semibold text-sm text-white relative overflow-hidden transition-all duration-300"
-                style={{
-                  background: sent
-                    ? "rgba(34,197,94,0.2)"
-                    : "linear-gradient(135deg, #7c3aed, #a855f7)",
-                  border: sent
-                    ? "1px solid rgba(34,197,94,0.4)"
-                    : "1px solid rgba(168,85,247,0.4)",
-                  boxShadow: sent ? "none" : "0 8px 32px rgba(109,40,217,0.35)",
-                }}
+          <div ref={headingRef} className="mb-16 md:mb-24 overflow-hidden">
+            <motion.h2
+              initial={{ y: "105%", opacity: 0 }}
+              animate={isInView ? { y: "0%", opacity: 1 } : {}}
+              transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+              className="text-[clamp(40px,8vw,100px)] font-black leading-[0.9] tracking-tight"
+            >
+              <span className="text-white">Let's </span>
+              <span
+                className="text-transparent"
+                style={{ WebkitTextStroke: "1px rgba(168,85,247,0.45)" }}
               >
-                <AnimatePresence mode="wait">
-                  {sent ? (
-                    <motion.span
-                      key="sent"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="flex items-center justify-center gap-2 text-green-400"
-                    >
-                      <CheckCircle size={16} />
-                      Message sent!
-                    </motion.span>
-                  ) : sending ? (
-                    <motion.span
-                      key="sending"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="flex items-center justify-center gap-2"
-                    >
-                      <motion.div
-                        className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white"
-                        animate={{ rotate: 360 }}
-                        transition={{
-                          duration: 0.8,
-                          repeat: Infinity,
-                          ease: "linear",
-                        }}
-                      />
-                      Sending...
-                    </motion.span>
-                  ) : (
-                    <motion.span
-                      key="idle"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="flex items-center justify-center gap-2"
-                    >
-                      <Send size={15} />
-                      Send Message
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-            </form>
-          </motion.div>
-
-          {/* RIGHT — INFO */}
-          <div className="lg:col-span-5 space-y-4 lg:pt-4">
-            <ContactRow
-              icon={Phone}
-              label="Phone"
-              value="0812 8780 9468"
-              href="https://wa.me/6281287809468"
-              delay={0}
-            />
-            <ContactRow
-              icon={Mail}
-              label="Email"
-              value="idampalada08@gmail.com"
-              href="mailto:idampalada08@gmail.com"
-              delay={0.1}
-            />
-            <ContactRow
-              icon={MapPin}
-              label="Location"
-              value="Kebayoran Lama, Jakarta Selatan"
-              delay={0.2}
-            />
-
-            {/* Availability card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+                Connect
+              </span>
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{
                 duration: 0.6,
-                delay: 0.35,
+                delay: 0.3,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="mt-6 p-5 rounded-2xl"
+              className="text-gray-500 text-base mt-4 max-w-md"
+            >
+              Have a project in mind? Let's talk. I'll get back to you within 24
+              hours.
+            </motion.p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="lg:col-span-7 relative rounded-3xl p-7 md:p-10"
               style={{
-                background: "rgba(34,197,94,0.05)",
-                border: "1px solid rgba(34,197,94,0.15)",
+                background: "rgba(255,255,255,0.025)",
+                border: "1px solid rgba(167,139,250,0.15)",
+                boxShadow:
+                  "0 0 80px rgba(109,40,217,0.12), inset 0 1px 0 rgba(255,255,255,0.05)",
               }}
             >
-              <div className="flex items-center gap-3 mb-2">
-                <motion.div
-                  className="w-2 h-2 rounded-full bg-green-400"
-                  animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  style={{ boxShadow: "0 0 8px rgba(74,222,128,0.8)" }}
-                />
-                <span className="text-green-400 text-xs font-bold tracking-[0.12em] uppercase">
-                  Available for work
-                </span>
-              </div>
-              <p className="text-gray-500 text-[12px] leading-relaxed">
-                Currently open to freelance projects and full-time
-                opportunities. Response time typically within 24 hours.
-              </p>
-            </motion.div>
+              <div
+                className="absolute top-0 right-0 w-40 h-40 rounded-full pointer-events-none"
+                style={{
+                  background:
+                    "radial-gradient(circle, rgba(167,139,250,0.08), transparent 70%)",
+                  transform: "translate(30%, -30%)",
+                }}
+              />
 
-            {/* Quick links */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{
-                duration: 0.6,
-                delay: 0.45,
-                ease: [0.22, 1, 0.36, 1],
-              }}
-              className="flex gap-3 pt-2"
-            >
-              {[
-                { label: "GitHub", href: "https://github.com/idampalada" },
-                {
-                  label: "LinkedIn",
-                  href: "https://linkedin.com/in/idam-palada",
-                },
-                {
-                  label: "Instagram",
-                  href: "https://instagram.com/idam.palada",
-                },
-              ].map(({ label, href }) => (
-                <motion.a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  whileHover={{ y: -3, scale: 1.05 }}
-                  whileTap={{ scale: 0.96 }}
-                  transition={{ duration: 0.2 }}
-                  className="flex-1 py-2.5 rounded-xl text-center text-[11px] font-semibold text-purple-400 transition-colors duration-200"
+              <div className="mb-8">
+                <h3 className="text-2xl md:text-3xl font-black text-white mb-2 tracking-tight">
+                  Send a message
+                </h3>
+                <p className="text-gray-500 text-sm">
+                  I design and build things I love. Let's make something
+                  together.
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <FloatingInput label="First name" name="firstName" />
+                  <FloatingInput label="Last name" name="lastName" />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <FloatingInput
+                    label="Email address"
+                    type="email"
+                    name="email"
+                  />
+                  <FloatingInput label="Phone number" type="tel" name="phone" />
+                </div>
+                <FloatingTextarea label="Your message" name="message" />
+
+                <motion.button
+                  type="submit"
+                  disabled={sending || sent}
+                  whileHover={{ scale: sending || sent ? 1 : 1.02 }}
+                  whileTap={{ scale: sending || sent ? 1 : 0.98 }}
+                  className="w-full py-4 rounded-full font-semibold text-sm text-white relative overflow-hidden transition-all duration-300"
                   style={{
-                    background: "rgba(109,40,217,0.1)",
-                    border: "1px solid rgba(167,139,250,0.18)",
+                    background: sent
+                      ? "rgba(34,197,94,0.2)"
+                      : "linear-gradient(135deg, #7c3aed, #a855f7)",
+                    border: sent
+                      ? "1px solid rgba(34,197,94,0.4)"
+                      : "1px solid rgba(168,85,247,0.4)",
+                    boxShadow: sent
+                      ? "none"
+                      : "0 8px 32px rgba(109,40,217,0.35)",
                   }}
                 >
-                  {label}
-                </motion.a>
-              ))}
+                  <AnimatePresence mode="wait">
+                    {sent ? (
+                      <motion.span
+                        key="sent"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="flex items-center justify-center gap-2 text-green-400"
+                      >
+                        <CheckCircle size={16} /> Message sent!
+                      </motion.span>
+                    ) : sending ? (
+                      <motion.span
+                        key="sending"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="flex items-center justify-center gap-2"
+                      >
+                        <motion.div
+                          className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white"
+                          animate={{ rotate: 360 }}
+                          transition={{
+                            duration: 0.8,
+                            repeat: Infinity,
+                            ease: "linear",
+                          }}
+                        />
+                        Sending...
+                      </motion.span>
+                    ) : (
+                      <motion.span
+                        key="idle"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="flex items-center justify-center gap-2"
+                      >
+                        <Send size={15} /> Send Message
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </motion.button>
+              </form>
             </motion.div>
+
+            <div className="lg:col-span-5 space-y-4 lg:pt-4">
+              <ContactRow
+                icon={Phone}
+                label="Phone"
+                value="0812 8780 9468"
+                href="https://wa.me/6281287809468"
+                delay={0}
+              />
+              <ContactRow
+                icon={Mail}
+                label="Email"
+                value="idampalada08@gmail.com"
+                href="mailto:idampalada08@gmail.com"
+                delay={0.1}
+              />
+              <ContactRow
+                icon={MapPin}
+                label="Location"
+                value="Kebayoran Lama, Jakarta Selatan"
+                delay={0.2}
+              />
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{
+                  duration: 0.6,
+                  delay: 0.35,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                className="mt-6 p-5 rounded-2xl"
+                style={{
+                  background: "rgba(34,197,94,0.05)",
+                  border: "1px solid rgba(34,197,94,0.15)",
+                }}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <motion.div
+                    className="w-2 h-2 rounded-full bg-green-400"
+                    animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    style={{ boxShadow: "0 0 8px rgba(74,222,128,0.8)" }}
+                  />
+                  <span className="text-green-400 text-xs font-bold tracking-[0.12em] uppercase">
+                    Available for work
+                  </span>
+                </div>
+                <p className="text-gray-500 text-[12px] leading-relaxed">
+                  Currently open to freelance projects and full-time
+                  opportunities. Response time typically within 24 hours.
+                </p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{
+                  duration: 0.6,
+                  delay: 0.45,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                className="flex gap-3 pt-2"
+              >
+                {[
+                  { label: "GitHub", href: "https://github.com/idampalada" },
+                  {
+                    label: "LinkedIn",
+                    href: "https://linkedin.com/in/idam-palada",
+                  },
+                  {
+                    label: "Instagram",
+                    href: "https://instagram.com/idam.palada",
+                  },
+                ].map(({ label, href }) => (
+                  <motion.a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    whileHover={{ y: -3, scale: 1.05 }}
+                    whileTap={{ scale: 0.96 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex-1 py-2.5 rounded-xl text-center text-[11px] font-semibold text-purple-400 transition-colors duration-200"
+                    style={{
+                      background: "rgba(109,40,217,0.1)",
+                      border: "1px solid rgba(167,139,250,0.18)",
+                    }}
+                  >
+                    {label}
+                  </motion.a>
+                ))}
+              </motion.div>
+            </div>
           </div>
         </div>
       </div>
