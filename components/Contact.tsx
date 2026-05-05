@@ -50,7 +50,9 @@ function FloatingInput({
           background: focused
             ? "rgba(255,255,255,0.06)"
             : "rgba(255,255,255,0.03)",
-          border: `1px solid ${focused ? "rgba(167,139,250,0.5)" : "rgba(167,139,250,0.15)"}`,
+          border: `1px solid ${
+            focused ? "rgba(167,139,250,0.5)" : "rgba(167,139,250,0.15)"
+          }`,
           boxShadow: focused ? "0 0 0 3px rgba(167,139,250,0.08)" : "none",
         }}
       />
@@ -89,7 +91,9 @@ function FloatingTextarea({ label, name }: { label: string; name: string }) {
           background: focused
             ? "rgba(255,255,255,0.06)"
             : "rgba(255,255,255,0.03)",
-          border: `1px solid ${focused ? "rgba(167,139,250,0.5)" : "rgba(167,139,250,0.15)"}`,
+          border: `1px solid ${
+            focused ? "rgba(167,139,250,0.5)" : "rgba(167,139,250,0.15)"
+          }`,
           boxShadow: focused ? "0 0 0 3px rgba(167,139,250,0.08)" : "none",
         }}
       />
@@ -169,7 +173,7 @@ export default function Contact() {
   };
 
   return (
-    // 🔥 PERBAIKAN: Hapus sticky top-0 agar tidak ngelag saat nge-scroll
+    // 🔥 PERBAIKAN: Memastikan elemen ini z-index paling tinggi (z-50) agar bisa menimpa komponen Portfolio
     <section
       id="contact"
       ref={sectionRef}
@@ -180,11 +184,12 @@ export default function Contact() {
         style={{
           background: "#0C0512",
           borderTop: "1px solid rgba(168,85,247,0.2)",
+          boxShadow: "0 -40px 120px rgba(0,0,0,0.9)", // Bayangan ekstra agar terlihat menimpa halaman sebelumnya
         }}
       >
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-purple-500/60 to-transparent pointer-events-none" />
 
-        {/* 🔥 PERBAIKAN: Sembunyikan efek blur gila-gilaan ini di Mobile dengan hidden md:block */}
+        {/* 🔥 PERBAIKAN: Blur raksasa disembunyikan di Mobile */}
         <div className="absolute inset-0 -z-10 pointer-events-none hidden md:block">
           <div
             className="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] rounded-full"
@@ -281,7 +286,6 @@ export default function Contact() {
                   "0 0 80px rgba(109,40,217,0.12), inset 0 1px 0 rgba(255,255,255,0.05)",
               }}
             >
-              {/* Dekorasi lingkaran blur form ini aman karena kecil, tapi kita block juga di mobile untuk extra performance */}
               <div
                 className="absolute top-0 right-0 w-40 h-40 rounded-full pointer-events-none hidden md:block"
                 style={{
