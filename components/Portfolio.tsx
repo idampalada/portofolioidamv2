@@ -257,7 +257,11 @@ function ProjectCard({
 
 export default function Portfolio() {
   const [activeTab, setActiveTab] = useState<TabType>("projects");
+
+  // 🔥 TAMBAHAN: Struktur 3 Lapis untuk Stacking
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
+  const portfolioContentRef = useRef<HTMLDivElement>(null);
 
   const [page, setPage] = useState(0);
   const itemsPerPage = 3;
@@ -270,19 +274,25 @@ export default function Portfolio() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      let mm = gsap.matchMedia();
-
-      mm.add("(min-width: 768px)", () => {
-        ScrollTrigger.create({
-          trigger: sectionRef.current,
-          start: "bottom bottom",
-          end: () => "+=" + window.innerHeight,
-          pin: true,
-          pinSpacing: false,
-          anticipatePin: 1,
-        });
+      // 🔥 ILMU RAHASIA STACKING DILEPAS! Berlaku di semua layar (HP & PC)
+      ScrollTrigger.create({
+        trigger: sectionRef.current,
+        start: "bottom bottom", // Baru mengunci saat mentok bawah
+        end: () => "+=" + window.innerHeight,
+        pin: true,
+        pinSpacing: false,
+        anticipatePin: 1,
+        onUpdate: (self) => {
+          const p = self.progress;
+          if (portfolioContentRef.current) {
+            gsap.set(portfolioContentRef.current, {
+              scale: 1 - p * 0.08, // Mengecil saat ditimpa Contact
+              opacity: 1 - p * 0.8, // Memudar pelan-pelan
+            });
+          }
+        },
       });
-    }, sectionRef);
+    }, wrapperRef);
 
     return () => ctx.revert();
   }, []);
@@ -295,8 +305,8 @@ export default function Portfolio() {
   }, [activeTab, page]);
 
   return (
-    // 🔥 PERBAIKAN: DIV BUNGKUSAN INI YANG MENYELAMATKAN DARI ERROR DOM
-    <div className="relative w-full">
+    // 🔥 PERBAIKAN: Struktur HTML diperbarui sesuai standar Stacking 3 Lapis
+    <div ref={wrapperRef} className="relative w-full">
       <section
         id="portfolio"
         ref={sectionRef}
@@ -305,158 +315,167 @@ export default function Portfolio() {
           borderTop: "1px solid rgba(168,85,247,0.15)",
         }}
       >
-        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-purple-500/40 to-transparent pointer-events-none" />
+        {/* Content Ref yang akan di-scale & dipudarkan oleh GSAP */}
+        <div
+          ref={portfolioContentRef}
+          className="w-full flex-1 flex flex-col origin-top"
+        >
+          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-purple-500/40 to-transparent pointer-events-none" />
 
-        <div className="absolute inset-0 -z-10 pointer-events-none w-full h-full hidden md:block">
-          <div
-            className="absolute top-[20%] right-[-10%] w-[600px] h-[600px] rounded-full"
-            style={{
-              background:
-                "radial-gradient(circle, rgba(109,40,217,0.06) 0%, transparent 70%)",
-              filter: "blur(100px)",
-              willChange: "transform, filter",
-            }}
-          />
-        </div>
-
-        <div className="max-w-[1320px] w-full mx-auto px-6 md:px-10 lg:px-16 relative z-10">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="h-px w-12 bg-purple-500" />
-            <span className="text-purple-400 text-xs tracking-[0.25em] uppercase font-medium">
-              Work
-            </span>
+          {/* 🔥 Sembunyikan efek blur raksasa di HP */}
+          <div className="absolute inset-0 -z-10 pointer-events-none w-full h-full hidden md:block">
+            <div
+              className="absolute top-[20%] right-[-10%] w-[600px] h-[600px] rounded-full"
+              style={{
+                background:
+                  "radial-gradient(circle, rgba(109,40,217,0.06) 0%, transparent 70%)",
+                filter: "blur(100px)",
+                willChange: "transform, filter",
+              }}
+            />
           </div>
 
-          <div className="mb-14 w-full">
-            <h2 className="text-[clamp(40px,8vw,100px)] font-black leading-[0.9] tracking-tight">
-              <span className="text-white">Selected </span>
-              <span
-                className="text-transparent"
-                style={{ WebkitTextStroke: "1px rgba(168,85,247,0.4)" }}
-              >
-                Projects
+          <div className="max-w-[1320px] w-full mx-auto px-6 md:px-10 lg:px-16 relative z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="h-px w-12 bg-purple-500" />
+              <span className="text-purple-400 text-xs tracking-[0.25em] uppercase font-medium">
+                Work
               </span>
-            </h2>
-          </div>
-
-          <div className="flex justify-center mb-16 w-full">
-            <div className="flex gap-1 p-1.5 rounded-full bg-white/[0.03] border border-white/10 backdrop-blur-md overflow-x-auto max-w-full no-scrollbar">
-              {(["projects", "services", "tech"] as const).map((key) => (
-                <TabBtn
-                  key={key}
-                  active={activeTab === key}
-                  onClick={() => {
-                    setActiveTab(key);
-                    setPage(0);
-                  }}
-                >
-                  {key.charAt(0).toUpperCase() + key.slice(1)}
-                </TabBtn>
-              ))}
             </div>
-          </div>
 
-          <div className="relative min-h-[600px] w-full">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={`${activeTab}-${page}`}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -30 }}
-                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                className="w-full"
-              >
-                {activeTab === "projects" && (
-                  <div className="w-full flex flex-col items-center">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
-                      {currentProjects.map((project, i) => (
-                        <ProjectCard
-                          key={project.id}
-                          project={project}
-                          index={i}
-                        />
+            <div className="mb-14 w-full">
+              <h2 className="text-[clamp(40px,8vw,100px)] font-black leading-[0.9] tracking-tight">
+                <span className="text-white">Selected </span>
+                <span
+                  className="text-transparent"
+                  style={{ WebkitTextStroke: "1px rgba(168,85,247,0.4)" }}
+                >
+                  Projects
+                </span>
+              </h2>
+            </div>
+
+            <div className="flex justify-center mb-16 w-full">
+              <div className="flex gap-1 p-1.5 rounded-full bg-white/[0.03] border border-white/10 backdrop-blur-md overflow-x-auto max-w-full no-scrollbar">
+                {(["projects", "services", "tech"] as const).map((key) => (
+                  <TabBtn
+                    key={key}
+                    active={activeTab === key}
+                    onClick={() => {
+                      setActiveTab(key);
+                      setPage(0);
+                    }}
+                  >
+                    {key.charAt(0).toUpperCase() + key.slice(1)}
+                  </TabBtn>
+                ))}
+              </div>
+            </div>
+
+            <div className="relative min-h-[600px] w-full">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`${activeTab}-${page}`}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -30 }}
+                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  className="w-full"
+                >
+                  {activeTab === "projects" && (
+                    <div className="w-full flex flex-col items-center">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
+                        {currentProjects.map((project, i) => (
+                          <ProjectCard
+                            key={project.id}
+                            project={project}
+                            index={i}
+                          />
+                        ))}
+                      </div>
+
+                      {totalPages > 1 && (
+                        <div className="mt-14 flex items-center gap-4">
+                          <button
+                            onClick={() => setPage((p) => Math.max(0, p - 1))}
+                            disabled={page === 0}
+                            className="w-10 h-10 flex items-center justify-center rounded-full border border-purple-500/30 text-purple-400 hover:bg-purple-500/15 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                          >
+                            <ChevronLeft size={18} />
+                          </button>
+                          <div className="flex gap-2">
+                            {Array.from({ length: totalPages }).map((_, i) => (
+                              <button
+                                key={i}
+                                onClick={() => setPage(i)}
+                                className={`w-2.5 h-2.5 rounded-full transition-all ${
+                                  i === page
+                                    ? "bg-purple-500 scale-125"
+                                    : "bg-purple-500/30 hover:bg-purple-500/60"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <button
+                            onClick={() =>
+                              setPage((p) => Math.min(totalPages - 1, p + 1))
+                            }
+                            disabled={page === totalPages - 1}
+                            className="w-10 h-10 flex items-center justify-center rounded-full border border-purple-500/30 text-purple-400 hover:bg-purple-500/15 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                          >
+                            <ChevronRight size={18} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {activeTab === "services" && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+                      {services.map((service, i) => (
+                        <div
+                          key={i}
+                          className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-purple-500/30 transition-all w-full"
+                        >
+                          <div className="text-2xl mb-4 text-purple-500">
+                            {service.icon}
+                          </div>
+                          <h4 className="text-white font-bold mb-2">
+                            {service.label}
+                          </h4>
+                          <p className="text-gray-500 text-sm">
+                            {service.desc}
+                          </p>
+                        </div>
                       ))}
                     </div>
+                  )}
 
-                    {totalPages > 1 && (
-                      <div className="mt-14 flex items-center gap-4">
-                        <button
-                          onClick={() => setPage((p) => Math.max(0, p - 1))}
-                          disabled={page === 0}
-                          className="w-10 h-10 flex items-center justify-center rounded-full border border-purple-500/30 text-purple-400 hover:bg-purple-500/15 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  {activeTab === "tech" && (
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 w-full">
+                      {techStack.map((tech, i) => (
+                        <div
+                          key={i}
+                          className="flex flex-col items-center justify-center p-6 rounded-2xl bg-white/[0.02] border border-white/5 aspect-square hover:bg-purple-500/5 transition-all group w-full"
                         >
-                          <ChevronLeft size={18} />
-                        </button>
-                        <div className="flex gap-2">
-                          {Array.from({ length: totalPages }).map((_, i) => (
-                            <button
-                              key={i}
-                              onClick={() => setPage(i)}
-                              className={`w-2.5 h-2.5 rounded-full transition-all ${
-                                i === page
-                                  ? "bg-purple-500 scale-125"
-                                  : "bg-purple-500/30 hover:bg-purple-500/60"
-                              }`}
+                          <div className="w-12 h-12 relative mb-3 grayscale group-hover:grayscale-0 transition-all duration-500">
+                            <Image
+                              src={tech.src}
+                              alt={tech.name}
+                              fill
+                              className="object-contain"
                             />
-                          ))}
+                          </div>
+                          <span className="text-[10px] text-gray-500 uppercase tracking-widest text-center">
+                            {tech.name}
+                          </span>
                         </div>
-                        <button
-                          onClick={() =>
-                            setPage((p) => Math.min(totalPages - 1, p + 1))
-                          }
-                          disabled={page === totalPages - 1}
-                          className="w-10 h-10 flex items-center justify-center rounded-full border border-purple-500/30 text-purple-400 hover:bg-purple-500/15 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                        >
-                          <ChevronRight size={18} />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {activeTab === "services" && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-                    {services.map((service, i) => (
-                      <div
-                        key={i}
-                        className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-purple-500/30 transition-all w-full"
-                      >
-                        <div className="text-2xl mb-4 text-purple-500">
-                          {service.icon}
-                        </div>
-                        <h4 className="text-white font-bold mb-2">
-                          {service.label}
-                        </h4>
-                        <p className="text-gray-500 text-sm">{service.desc}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {activeTab === "tech" && (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 w-full">
-                    {techStack.map((tech, i) => (
-                      <div
-                        key={i}
-                        className="flex flex-col items-center justify-center p-6 rounded-2xl bg-white/[0.02] border border-white/5 aspect-square hover:bg-purple-500/5 transition-all group w-full"
-                      >
-                        <div className="w-12 h-12 relative mb-3 grayscale group-hover:grayscale-0 transition-all duration-500">
-                          <Image
-                            src={tech.src}
-                            alt={tech.name}
-                            fill
-                            className="object-contain"
-                          />
-                        </div>
-                        <span className="text-[10px] text-gray-500 uppercase tracking-widest text-center">
-                          {tech.name}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
           </div>
         </div>
       </section>
