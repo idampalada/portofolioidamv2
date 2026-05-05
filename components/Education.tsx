@@ -346,11 +346,14 @@ export default function Education() {
             </div>
 
             {/* Heading */}
-            <div className="mb-16 md:mb-20 overflow-hidden">
+            {/* 1. Hapus class 'overflow-hidden' dari div pembungkus ini */}
+            <div className="mb-16 md:mb-20">
               <motion.h2
-                initial={{ y: "105%", opacity: 0 }}
-                whileInView={{ y: "0%", opacity: 1 }}
-                viewport={{ once: true }}
+                // 2. Ubah persentase menjadi pixel agar tidak terpotong ke bawah terlalu jauh
+                initial={{ y: 40, opacity: 0 }}
+                whileInView={{ y: 0, opacity: 1 }}
+                // 3. Tambahkan margin negatif agar animasi terpicu lebih awal saat di-scroll
+                viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
                 className="text-[clamp(40px,8vw,90px)] font-black leading-[0.9] tracking-tight"
               >

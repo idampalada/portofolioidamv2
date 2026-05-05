@@ -21,7 +21,7 @@ function SkillTag({ label, delay = 0 }: { label: string; delay?: number }) {
         borderColor: "rgba(168,85,247,0.5)",
         transition: { duration: 0.2 },
       }}
-      className="inline-block px-4 py-2 rounded-full text-xs text-purple-300 cursor-default select-none"
+      className="inline-block px-4 py-2 rounded-full text-xs text-purple-300 cursor-default select-none whitespace-nowrap"
       style={{
         background: "rgba(109,40,217,0.12)",
         border: "1px solid rgba(168,85,247,0.2)",
@@ -44,11 +44,11 @@ function RevealLine({
   style?: React.CSSProperties;
 }) {
   return (
-    <div className="overflow-hidden">
+    <div className="w-full">
       <motion.div
-        initial={{ y: "105%", opacity: 0 }}
-        whileInView={{ y: "0%", opacity: 1 }}
-        viewport={{ once: true, margin: "-60px" }}
+        initial={{ y: 40, opacity: 0 }}
+        whileInView={{ y: 0, opacity: 1 }}
+        viewport={{ once: true, margin: "-40px" }}
         transition={{ duration: 0.85, delay, ease: [0.22, 1, 0.36, 1] }}
         className={className}
         style={style}
@@ -75,7 +75,7 @@ function StatCard({
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ y: -4, transition: { duration: 0.3 } }}
-      className="relative p-5 rounded-2xl cursor-default group"
+      className="relative p-4 lg:p-5 rounded-2xl cursor-default group w-full"
       style={{
         background: "rgba(255,255,255,0.03)",
         border: "1px solid rgba(168,85,247,0.12)",
@@ -89,14 +89,18 @@ function StatCard({
             "radial-gradient(circle at 50% 0%, rgba(168,85,247,0.1), transparent 70%)",
         }}
       />
-      <div className="text-2xl font-black text-white mb-1">{number}</div>
-      <div className="text-xs text-gray-500 leading-tight">{label}</div>
+      <div className="text-xl md:text-2xl font-black text-white mb-1">
+        {number}
+      </div>
+      <div className="text-[10px] md:text-xs text-gray-500 leading-tight break-words">
+        {label}
+      </div>
     </motion.div>
   );
 }
 
 export default function About() {
-  const containerRef = useRef<HTMLDivElement>(null); // Tambahkan containerRef
+  const containerRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
 
@@ -132,9 +136,7 @@ export default function About() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      // Gunakan containerRef agar tidak ada konflik removeChild dengan React
       const ctx = gsap.context(() => {
-        // 1. Animasi border radius (seperti sebelumnya)
         gsap.fromTo(
           "#about-inner-wrapper",
           { borderRadius: "2rem 2rem 0 0" },
@@ -151,15 +153,14 @@ export default function About() {
           },
         );
 
-        // 2. Kunci (Pin) section About agar bisa tertimpa oleh Education
         ScrollTrigger.create({
           trigger: sectionRef.current,
           start: "bottom bottom",
-          end: "+=100%", // Tetap terkunci cukup lama agar sempat tertimpa
+          end: "+=100%",
           pin: true,
-          pinSpacing: false, // Penting agar elemen selanjutnya bisa naik menimpa
+          pinSpacing: false,
         });
-      }, containerRef); // Scope diatur ke containerRef
+      }, containerRef);
 
       return () => ctx.revert();
     }, 100);
@@ -168,16 +169,17 @@ export default function About() {
   }, []);
 
   return (
-    // Tambahkan <div> pembungkus dengan z-index 20
-    <div ref={containerRef} id="about" className="relative z-20 bg-[#0C0512]">
-      <section
-        ref={sectionRef}
-        // Hapus 'sticky top-0' dan zIndex dari sini
-        className="relative"
-      >
+    // PERBAIKAN 1: Tambahkan w-full overflow-hidden di pembungkus paling luar
+    <div
+      ref={containerRef}
+      id="about"
+      className="relative z-20 bg-[#0C0512] w-full overflow-hidden"
+    >
+      {/* PERBAIKAN 2: Tambahkan w-full agar saat di-pin GSAP, ukurannya tidak melar */}
+      <section ref={sectionRef} className="relative w-full">
         <div
           id="about-inner-wrapper"
-          className="relative overflow-hidden pt-16 pb-16 md:pt-20 md:pb-24"
+          className="relative w-full overflow-hidden pt-16 pb-16 md:pt-20 md:pb-24"
           style={{
             background: "#0C0512",
             borderRadius: "2rem 2rem 0 0",
@@ -185,7 +187,7 @@ export default function About() {
               "0 -40px 120px rgba(0,0,0,0.9), 0 -1px 0 rgba(168,85,247,0.15)",
           }}
         >
-          <div className="absolute inset-0 -z-10">
+          <div className="absolute inset-0 -z-10 w-full overflow-hidden">
             <motion.div
               style={{
                 y: glowY,
@@ -213,7 +215,7 @@ export default function About() {
             }}
           />
 
-          <div className="max-w-[1320px] mx-auto px-6 md:px-10 lg:px-16">
+          <div className="max-w-[1320px] w-full mx-auto px-6 md:px-10 lg:px-16">
             <div className="flex items-center gap-4 mb-4">
               <motion.div
                 initial={{ scaleX: 0 }}
@@ -227,19 +229,19 @@ export default function About() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.3 }}
-                className="text-purple-400 text-xs tracking-[0.25em] uppercase font-medium"
+                className="text-purple-400 text-xs tracking-[0.25em] uppercase font-medium whitespace-nowrap"
               >
                 About me
               </motion.span>
             </div>
 
-            <div className="mb-6 md:mb-8">
-              <RevealLine className="text-[clamp(48px,10vw,120px)] font-black leading-[0.88] tracking-tight text-white">
+            <div className="mb-6 md:mb-8 w-full">
+              <RevealLine className="text-[clamp(38px,10vw,120px)] font-black leading-[0.88] tracking-tight text-white break-words">
                 Who I
               </RevealLine>
               <RevealLine
                 delay={0.1}
-                className="text-[clamp(48px,10vw,120px)] font-black leading-[0.88] tracking-tight text-transparent"
+                className="text-[clamp(38px,10vw,120px)] font-black leading-[0.88] tracking-tight text-transparent break-words"
                 style={
                   {
                     WebkitTextStroke: "1px rgba(168,85,247,0.5)",
@@ -250,8 +252,8 @@ export default function About() {
               </RevealLine>
             </div>
 
-            <div className="grid grid-cols-12 gap-12 lg:gap-16 items-start">
-              <div className="col-span-12 lg:col-span-5 flex justify-center lg:justify-start">
+            <div className="grid grid-cols-12 gap-8 lg:gap-16 items-start w-full">
+              <div className="col-span-12 lg:col-span-5 flex justify-center lg:justify-start w-full">
                 <motion.div
                   ref={imageRef}
                   style={{ scale: imageScale, y: imageY }}
@@ -268,7 +270,7 @@ export default function About() {
                   <motion.div
                     whileHover={{ rotate: 0, scale: 1.02 }}
                     initial={{ rotate: -3 }}
-                    className="relative w-[280px] md:w-[360px] h-[380px] md:h-[460px] rounded-[2rem] overflow-hidden"
+                    className="relative w-[260px] sm:w-[280px] md:w-[360px] h-[360px] sm:h-[380px] md:h-[460px] rounded-[2rem] overflow-hidden mx-auto"
                     transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                     style={{
                       border: "1px solid rgba(168,85,247,0.25)",
@@ -302,8 +304,9 @@ export default function About() {
                     />
                   </motion.div>
 
+                  {/* PERBAIKAN 3: Kotak Quote dikalibrasi agar tidak lompat keluar layar HP */}
                   <motion.div
-                    className="absolute bottom-[-20px] right-[-20px] lg:right-[-40px] max-w-[200px] z-20"
+                    className="absolute bottom-[-16px] right-[0px] md:right-[-20px] lg:right-[-40px] max-w-[180px] md:max-w-[200px] z-20"
                     initial={{ opacity: 0, y: 20, scale: 0.9 }}
                     whileInView={{ opacity: 1, y: 0, scale: 1 }}
                     viewport={{ once: true }}
@@ -316,7 +319,7 @@ export default function About() {
                     whileHover={{ scale: 1.05 }}
                   >
                     <div
-                      className="p-4 rounded-2xl"
+                      className="p-3 md:p-4 rounded-2xl"
                       style={{
                         background: "rgba(20,10,40,0.85)",
                         border: "1px solid rgba(168,85,247,0.25)",
@@ -324,12 +327,12 @@ export default function About() {
                         boxShadow: "0 20px 60px rgba(0,0,0,0.4)",
                       }}
                     >
-                      <p className="text-xs text-purple-300 italic leading-relaxed">
+                      <p className="text-[11px] md:text-xs text-purple-300 italic leading-relaxed break-words">
                         "Learning fast. Building faster."
                       </p>
                       <div className="mt-2 flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-purple-500 to-fuchsia-600" />
-                        <span className="text-[10px] text-gray-500">
+                        <div className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-gradient-to-br from-purple-500 to-fuchsia-600 flex-shrink-0" />
+                        <span className="text-[9px] md:text-[10px] text-gray-500 whitespace-nowrap">
                           Idam Palada
                         </span>
                       </div>
@@ -338,7 +341,8 @@ export default function About() {
                 </motion.div>
               </div>
 
-              <div className="col-span-12 lg:col-span-7">
+              {/* PERBAIKAN 4: Penambahan w-full untuk membatasi ruang bio */}
+              <div className="col-span-12 lg:col-span-7 min-w-0 w-full">
                 <RevealLine
                   delay={0.15}
                   className="text-purple-400 text-lg mb-2 font-light"
@@ -352,7 +356,7 @@ export default function About() {
                   Idam Palada
                 </RevealLine>
 
-                <div className="space-y-6 mb-12">
+                <div className="space-y-6 mb-12 w-full">
                   {bioLines.map((line, i) => (
                     <motion.p
                       key={i}
@@ -364,7 +368,7 @@ export default function About() {
                         delay: 0.1 * i,
                         ease: [0.22, 1, 0.36, 1],
                       }}
-                      className="text-gray-400 leading-relaxed text-base"
+                      className="text-gray-400 leading-relaxed text-base break-words"
                     >
                       {line}
                     </motion.p>
@@ -383,17 +387,19 @@ export default function About() {
                   }}
                 />
 
-                <div className="grid grid-cols-3 gap-3 mb-10">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-10 w-full">
                   <StatCard number="2+" label="Years Experience" delay={0} />
                   <StatCard number="5+" label="Projects Shipped" delay={0.1} />
-                  <StatCard
-                    number="99%"
-                    label="Client Satisfaction"
-                    delay={0.2}
-                  />
+                  <div className="col-span-2 md:col-span-1">
+                    <StatCard
+                      number="99%"
+                      label="Client Satisfaction"
+                      delay={0.2}
+                    />
+                  </div>
                 </div>
 
-                <div>
+                <div className="w-full">
                   <motion.p
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
@@ -403,7 +409,7 @@ export default function About() {
                   >
                     Tech Stack
                   </motion.p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 w-full">
                     {skills.map((s, i) => (
                       <SkillTag key={s} label={s} delay={i * 0.04} />
                     ))}
@@ -412,15 +418,17 @@ export default function About() {
               </div>
             </div>
 
-            <div className="mt-28 overflow-hidden">
+            {/* PERBAIKAN 5: Biang kerok diamankan dengan w-full overflow-hidden */}
+            <div className="mt-28 w-full overflow-hidden">
               <motion.div
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 1 }}
+                className="w-full"
               >
                 <div className="w-full h-px mb-10 bg-gradient-to-r from-transparent via-purple-800/40 to-transparent" />
-                <div className="flex items-center gap-10 overflow-hidden whitespace-nowrap">
+                <div className="w-full flex items-center gap-10 overflow-hidden whitespace-nowrap">
                   <motion.div
                     className="flex items-center gap-10 text-sm tracking-widest uppercase font-medium"
                     animate={{ x: ["0%", "-50%"] }}
