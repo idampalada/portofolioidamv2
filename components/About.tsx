@@ -8,6 +8,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 
 gsap.registerPlugin(ScrollTrigger);
 
+// 🔥 PERBAIKAN: Hapus whileHover dari Framer Motion, ganti CSS class
 function SkillTag({ label, delay = 0 }: { label: string; delay?: number }) {
   return (
     <motion.span
@@ -15,13 +16,7 @@ function SkillTag({ label, delay = 0 }: { label: string; delay?: number }) {
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.4, delay, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={{
-        scale: 1.06,
-        backgroundColor: "rgba(139,92,246,0.2)",
-        borderColor: "rgba(168,85,247,0.5)",
-        transition: { duration: 0.2 },
-      }}
-      className="inline-block px-4 py-2 rounded-full text-xs text-purple-300 cursor-default select-none whitespace-nowrap"
+      className="inline-block px-4 py-2 rounded-full text-xs text-purple-300 cursor-default select-none whitespace-nowrap hover:scale-105 hover:bg-purple-500/20 hover:border-purple-500/50 transition-all duration-200"
       style={{
         background: "rgba(109,40,217,0.12)",
         border: "1px solid rgba(168,85,247,0.2)",
@@ -74,12 +69,11 @@ function StatCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={{ y: -4, transition: { duration: 0.3 } }}
-      className="relative p-4 lg:p-5 rounded-2xl cursor-default group w-full"
+      // 🔥 PERBAIKAN: Ganti whileHover dengan CSS class hover:-translate-y-1
+      className="relative p-4 lg:p-5 rounded-2xl cursor-default group w-full hover:-translate-y-1 transition-transform duration-300"
       style={{
         background: "rgba(255,255,255,0.03)",
         border: "1px solid rgba(168,85,247,0.12)",
-        backdropFilter: "blur(10px)",
       }}
     >
       <div
@@ -153,7 +147,7 @@ export default function About() {
           },
         );
 
-        // Karantina fitur PIN hanya untuk Desktop/Tablet (>768px)
+        // 🔥 PERBAIKAN: GSAP MatchMedia untuk Stacking Desktop saja
         let mm = gsap.matchMedia();
         mm.add("(min-width: 768px)", () => {
           ScrollTrigger.create({
@@ -191,6 +185,7 @@ export default function About() {
           }}
         >
           <div className="absolute inset-0 -z-10 w-full overflow-hidden">
+            {/* 🔥 PERBAIKAN: Blur disembunyikan di Mobile */}
             <motion.div
               style={{
                 y: glowY,
@@ -199,7 +194,7 @@ export default function About() {
                 filter: "blur(80px)",
                 willChange: "transform, filter",
               }}
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full pointer-events-none"
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full pointer-events-none hidden md:block"
             />
             <div
               className="absolute inset-0 opacity-[0.04]"
@@ -268,14 +263,10 @@ export default function About() {
                     style={{
                       background:
                         "linear-gradient(135deg, rgba(168,85,247,0.4), rgba(109,40,217,0.1), rgba(232,121,249,0.3))",
-                      filter: "blur(1px)",
                     }}
                   />
                   <motion.div
-                    whileHover={{ rotate: 0, scale: 1.02 }}
-                    initial={{ rotate: -3 }}
-                    className="relative w-[260px] sm:w-[280px] md:w-[360px] h-[360px] sm:h-[380px] md:h-[460px] rounded-[2rem] overflow-hidden mx-auto"
-                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                    className="relative w-[260px] sm:w-[280px] md:w-[360px] h-[360px] sm:h-[380px] md:h-[460px] rounded-[2rem] overflow-hidden mx-auto -rotate-3 hover:rotate-0 hover:scale-105 transition-transform duration-500"
                     style={{
                       border: "1px solid rgba(168,85,247,0.25)",
                       boxShadow:
@@ -289,11 +280,8 @@ export default function About() {
                           "linear-gradient(to top, rgba(12,5,18,0.5) 0%, transparent 50%, rgba(109,40,217,0.1) 100%)",
                       }}
                     />
-                    <motion.div
-                      className="absolute inset-0 z-20 pointer-events-none"
-                      initial={{ x: "-100%", opacity: 0 }}
-                      whileHover={{ x: "100%", opacity: 1 }}
-                      transition={{ duration: 0.8, ease: "easeInOut" }}
+                    <div
+                      className="absolute inset-0 z-20 pointer-events-none -translate-x-full hover:translate-x-full transition-transform duration-700 ease-in-out"
                       style={{
                         background:
                           "linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent)",
@@ -309,7 +297,7 @@ export default function About() {
                   </motion.div>
 
                   <motion.div
-                    className="absolute bottom-[-16px] right-[0px] md:right-[-20px] lg:right-[-40px] max-w-[180px] md:max-w-[200px] z-20"
+                    className="absolute bottom-[-16px] right-[0px] md:right-[-20px] lg:right-[-40px] max-w-[180px] md:max-w-[200px] z-20 hover:scale-105 transition-transform duration-300"
                     initial={{ opacity: 0, y: 20, scale: 0.9 }}
                     whileInView={{ opacity: 1, y: 0, scale: 1 }}
                     viewport={{ once: true }}
@@ -319,14 +307,12 @@ export default function About() {
                       ease: [0.22, 1, 0.36, 1],
                     }}
                     animate={{ y: [0, -6, 0] }}
-                    whileHover={{ scale: 1.05 }}
                   >
                     <div
                       className="p-3 md:p-4 rounded-2xl"
                       style={{
                         background: "rgba(20,10,40,0.85)",
                         border: "1px solid rgba(168,85,247,0.25)",
-                        backdropFilter: "blur(16px)",
                         boxShadow: "0 20px 60px rgba(0,0,0,0.4)",
                       }}
                     >

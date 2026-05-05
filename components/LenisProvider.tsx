@@ -15,6 +15,15 @@ export default function LenisProvider({
   const lenisRef = useRef<Lenis | null>(null);
 
   useEffect(() => {
+    // 🔥 PERBAIKAN 1: Matikan Lenis Smooth Scroll di layar HP
+    // Membiarkan HP menggunakan scroll natural bawaan OS (jauh lebih ringan!)
+    if (window.innerWidth < 768) {
+      ScrollTrigger.scrollerProxy(document.documentElement, {
+        pinType: "fixed",
+      });
+      return;
+    }
+
     const lenis = new Lenis({
       duration: 1.4,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -40,8 +49,8 @@ export default function LenisProvider({
           height: window.innerHeight,
         };
       },
-      // PERBAIKAN: "fixed" untuk HP (lebih ringan), "transform" untuk Desktop (lebih smooth)
-      pinType: window.innerWidth < 768 ? "fixed" : "transform",
+      // Karena HP sudah di-return di atas, kode ini pasti jalan di Desktop
+      pinType: "transform",
     });
 
     lenis.on("scroll", () => ScrollTrigger.update());

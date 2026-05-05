@@ -74,7 +74,6 @@ const experienceData: TimelineEntry[] = [
 function TimelineCard({ item, index }: { item: TimelineEntry; index: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-60px" });
-  const [hovered, setHovered] = useState(false);
 
   return (
     <motion.div
@@ -136,28 +135,7 @@ function TimelineCard({ item, index }: { item: TimelineEntry; index: number }) {
         >
           {item.period}
         </p>
-        <motion.div
-          onHoverStart={() => setHovered(true)}
-          onHoverEnd={() => setHovered(false)}
-          whileHover={{ y: -3 }}
-          className="relative rounded-2xl p-5 overflow-hidden cursor-default"
-          style={{
-            background: hovered
-              ? "rgba(255,255,255,0.055)"
-              : "rgba(255,255,255,0.025)",
-            border: `1px solid ${hovered ? "rgba(167,139,250,0.45)" : "rgba(167,139,250,0.18)"}`,
-            transition: "background 0.3s, border-color 0.3s",
-          }}
-        >
-          <div
-            className="absolute top-0 left-0 w-24 h-24 rounded-full pointer-events-none transition-opacity duration-500"
-            style={{
-              background:
-                "radial-gradient(circle, rgba(167,139,250,0.12), transparent 70%)",
-              opacity: hovered ? 1 : 0,
-              transform: "translate(-30%, -30%)",
-            }}
-          />
+        <div className="relative rounded-2xl p-5 overflow-hidden cursor-default transition-all duration-300 hover:bg-[rgba(255,255,255,0.055)] hover:border-[rgba(167,139,250,0.45)] hover:-translate-y-1 bg-[rgba(255,255,255,0.025)] border border-[rgba(167,139,250,0.18)]">
           <span
             className="inline-block text-[9px] font-bold tracking-[0.14em] uppercase rounded-md px-2 py-1 mb-3"
             style={{
@@ -182,7 +160,7 @@ function TimelineCard({ item, index }: { item: TimelineEntry; index: number }) {
           <p className="text-[13px] leading-relaxed text-slate-400/80">
             {item.desc}
           </p>
-        </motion.div>
+        </div>
       </div>
     </motion.div>
   );
@@ -258,7 +236,7 @@ export default function Education() {
           },
         );
 
-        // Karantina fitur PIN hanya untuk Desktop/Tablet (>768px)
+        // 🔥 PERBAIKAN: GSAP MatchMedia untuk Stacking Desktop saja
         let mm = gsap.matchMedia();
         mm.add("(min-width: 768px)", () => {
           ScrollTrigger.create({
@@ -294,7 +272,6 @@ export default function Education() {
             willChange: "border-radius",
           }}
         >
-          {/* Glowing top edge line */}
           <div
             className="absolute top-0 left-0 right-0 h-px pointer-events-none"
             style={{
@@ -303,8 +280,8 @@ export default function Education() {
             }}
           />
 
-          {/* Background elements */}
           <div className="absolute inset-0 -z-10">
+            {/* 🔥 PERBAIKAN: Blur raksasa disembunyikan di Mobile */}
             <motion.div
               style={{
                 y: glowY,
@@ -313,7 +290,7 @@ export default function Education() {
                 filter: "blur(80px)",
                 willChange: "transform, filter",
               }}
-              className="absolute right-[-10%] top-[20%] w-[600px] h-[600px] rounded-full pointer-events-none"
+              className="absolute right-[-10%] top-[20%] w-[600px] h-[600px] rounded-full pointer-events-none hidden md:block"
             />
             <div
               className="absolute inset-0 opacity-[0.025]"
@@ -326,7 +303,6 @@ export default function Education() {
           </div>
 
           <div className="max-w-[1320px] mx-auto px-6 md:px-10 lg:px-16 w-full">
-            {/* Section Label */}
             <div className="flex items-center gap-4 mb-6">
               <motion.div
                 initial={{ scaleX: 0 }}
@@ -346,7 +322,6 @@ export default function Education() {
               </motion.span>
             </div>
 
-            {/* Heading */}
             <div className="mb-16 md:mb-20 overflow-hidden">
               <motion.h2
                 initial={{ y: "105%", opacity: 0 }}
@@ -365,7 +340,6 @@ export default function Education() {
               </motion.h2>
             </div>
 
-            {/* Two Column Timeline */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 xl:gap-24">
               <div>
                 <ColumnHeader label="Academic" title="My Education" delay={0} />
@@ -390,7 +364,6 @@ export default function Education() {
               </div>
             </div>
 
-            {/* Bottom Marquee */}
             <div className="mt-24 overflow-hidden">
               <div className="w-full h-px bg-gradient-to-r from-transparent via-purple-800/40 to-transparent mb-10" />
               <motion.div

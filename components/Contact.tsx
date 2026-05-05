@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import {
   Send,
@@ -112,7 +112,6 @@ function ContactRow({
 }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-40px" });
-  const [hovered, setHovered] = useState(false);
 
   const inner = (
     <motion.div
@@ -120,31 +119,12 @@ function ContactRow({
       initial={{ opacity: 0, x: 30 }}
       animate={isInView ? { opacity: 1, x: 0 } : {}}
       transition={{ duration: 0.65, delay, ease: [0.22, 1, 0.36, 1] }}
-      onHoverStart={() => setHovered(true)}
-      onHoverEnd={() => setHovered(false)}
-      whileHover={{ x: 4 }}
-      className="flex items-center gap-5 p-5 rounded-2xl transition-all duration-300"
-      style={{
-        background: hovered
-          ? "rgba(255,255,255,0.05)"
-          : "rgba(255,255,255,0.025)",
-        border: `1px solid ${hovered ? "rgba(167,139,250,0.3)" : "rgba(167,139,250,0.1)"}`,
-        cursor: href ? "pointer" : "default",
-      }}
+      className="group flex items-center gap-5 p-5 rounded-2xl transition-all duration-300 hover:bg-[rgba(255,255,255,0.05)] hover:border-[rgba(167,139,250,0.3)] hover:translate-x-1 bg-[rgba(255,255,255,0.025)] border border-[rgba(167,139,250,0.1)]"
+      style={{ cursor: href ? "pointer" : "default" }}
     >
-      <motion.div
-        animate={{ rotate: hovered ? 10 : 0, scale: hovered ? 1.1 : 1 }}
-        transition={{ duration: 0.3 }}
-        className="w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-xl"
-        style={{
-          background: hovered
-            ? "rgba(109,40,217,0.3)"
-            : "rgba(109,40,217,0.15)",
-          border: "1px solid rgba(167,139,250,0.2)",
-        }}
-      >
+      <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-xl bg-[rgba(109,40,217,0.15)] border border-[rgba(167,139,250,0.2)] group-hover:bg-[rgba(109,40,217,0.3)] group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
         <Icon size={18} className="text-purple-400" />
-      </motion.div>
+      </div>
 
       <div className="min-w-0 flex-1">
         <p className="text-[10px] font-bold tracking-[0.14em] uppercase text-purple-500 mb-0.5">
@@ -154,12 +134,9 @@ function ContactRow({
       </div>
 
       {href && (
-        <motion.div
-          animate={{ x: hovered ? 2 : 0, y: hovered ? -2 : 0 }}
-          transition={{ duration: 0.2 }}
-        >
+        <div className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-200">
           <ArrowUpRight size={15} className="text-purple-600 flex-shrink-0" />
-        </motion.div>
+        </div>
       )}
     </motion.div>
   );
@@ -192,14 +169,13 @@ export default function Contact() {
   };
 
   return (
+    // 🔥 PERBAIKAN: Hapus sticky top-0 agar tidak ngelag saat nge-scroll
     <section
       id="contact"
       ref={sectionRef}
-      className="relative sticky top-0 z-50 min-h-screen"
+      className="relative z-50 min-h-screen w-full overflow-hidden"
     >
       <div
-        // Mengubah animasi GSAP border-radius menjadi statis rounded-t-[2.5rem]
-        // Menghapus shadow besar yang bikin lag
         className="relative overflow-hidden py-24 min-h-screen flex flex-col justify-center rounded-t-[2.5rem] md:rounded-t-[3rem]"
         style={{
           background: "#0C0512",
@@ -208,13 +184,15 @@ export default function Contact() {
       >
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-purple-500/60 to-transparent pointer-events-none" />
 
-        <div className="absolute inset-0 -z-10 pointer-events-none">
+        {/* 🔥 PERBAIKAN: Sembunyikan efek blur gila-gilaan ini di Mobile dengan hidden md:block */}
+        <div className="absolute inset-0 -z-10 pointer-events-none hidden md:block">
           <div
             className="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] rounded-full"
             style={{
               background:
                 "radial-gradient(circle, rgba(109,40,217,0.12) 0%, transparent 70%)",
               filter: "blur(60px)",
+              willChange: "transform, filter",
             }}
           />
           <div
@@ -223,8 +201,12 @@ export default function Contact() {
               background:
                 "radial-gradient(circle, rgba(192,132,252,0.06) 0%, transparent 70%)",
               filter: "blur(40px)",
+              willChange: "transform, filter",
             }}
           />
+        </div>
+
+        <div className="absolute inset-0 -z-10 pointer-events-none">
           <div
             className="absolute inset-0 opacity-[0.025]"
             style={{
@@ -255,10 +237,10 @@ export default function Contact() {
             </motion.span>
           </div>
 
-          <div ref={headingRef} className="mb-16 md:mb-24 overflow-hidden">
+          <div ref={headingRef} className="mb-16 md:mb-24 w-full">
             <motion.h2
-              initial={{ y: "105%", opacity: 0 }}
-              animate={isInView ? { y: "0%", opacity: 1 } : {}}
+              initial={{ y: 40, opacity: 0 }}
+              animate={isInView ? { y: 0, opacity: 1 } : {}}
               transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
               className="text-[clamp(40px,8vw,100px)] font-black leading-[0.9] tracking-tight"
             >
@@ -285,13 +267,13 @@ export default function Contact() {
             </motion.p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start w-full">
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
               transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="lg:col-span-7 relative rounded-3xl p-7 md:p-10"
+              className="lg:col-span-7 relative rounded-3xl p-6 md:p-10 w-full"
               style={{
                 background: "rgba(255,255,255,0.025)",
                 border: "1px solid rgba(167,139,250,0.15)",
@@ -299,12 +281,14 @@ export default function Contact() {
                   "0 0 80px rgba(109,40,217,0.12), inset 0 1px 0 rgba(255,255,255,0.05)",
               }}
             >
+              {/* Dekorasi lingkaran blur form ini aman karena kecil, tapi kita block juga di mobile untuk extra performance */}
               <div
-                className="absolute top-0 right-0 w-40 h-40 rounded-full pointer-events-none"
+                className="absolute top-0 right-0 w-40 h-40 rounded-full pointer-events-none hidden md:block"
                 style={{
                   background:
                     "radial-gradient(circle, rgba(167,139,250,0.08), transparent 70%)",
                   transform: "translate(30%, -30%)",
+                  willChange: "transform",
                 }}
               />
 
@@ -333,12 +317,10 @@ export default function Contact() {
                 </div>
                 <FloatingTextarea label="Your message" name="message" />
 
-                <motion.button
+                <button
                   type="submit"
                   disabled={sending || sent}
-                  whileHover={{ scale: sending || sent ? 1 : 1.02 }}
-                  whileTap={{ scale: sending || sent ? 1 : 0.98 }}
-                  className="w-full py-4 rounded-full font-semibold text-sm text-white relative overflow-hidden transition-all duration-300"
+                  className="w-full py-4 rounded-full font-semibold text-sm text-white relative overflow-hidden transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                   style={{
                     background: sent
                       ? "rgba(34,197,94,0.2)"
@@ -393,11 +375,11 @@ export default function Contact() {
                       </motion.span>
                     )}
                   </AnimatePresence>
-                </motion.button>
+                </button>
               </form>
             </motion.div>
 
-            <div className="lg:col-span-5 space-y-4 lg:pt-4">
+            <div className="lg:col-span-5 space-y-4 lg:pt-4 w-full">
               <ContactRow
                 icon={Phone}
                 label="Phone"
@@ -473,22 +455,19 @@ export default function Contact() {
                     href: "https://instagram.com/idam.palada",
                   },
                 ].map(({ label, href }) => (
-                  <motion.a
+                  <a
                     key={label}
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    whileHover={{ y: -3, scale: 1.05 }}
-                    whileTap={{ scale: 0.96 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex-1 py-2.5 rounded-xl text-center text-[11px] font-semibold text-purple-400 transition-colors duration-200"
+                    className="flex-1 py-2.5 rounded-xl text-center text-[11px] font-semibold text-purple-400 hover:scale-105 hover:-translate-y-1 hover:bg-purple-500/20 hover:text-white transition-all duration-200"
                     style={{
                       background: "rgba(109,40,217,0.1)",
                       border: "1px solid rgba(167,139,250,0.18)",
                     }}
                   >
                     {label}
-                  </motion.a>
+                  </a>
                 ))}
               </motion.div>
             </div>

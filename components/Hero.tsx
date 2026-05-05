@@ -9,7 +9,7 @@ import { motion, useMotionValue, useSpring } from "framer-motion";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// --- KOMPONEN BARU: Karantina Efek Ketik ---
+// 🔥 PERBAIKAN: Karantina Efek Ketik agar tidak me-render ulang seluruh halaman
 function TypewriterEffect() {
   const roles = ["Fullstack Developer", "Backend Engineer", "UI/UX Designer"];
   const [roleIdx, setRoleIdx] = useState(0);
@@ -43,7 +43,6 @@ function TypewriterEffect() {
     </span>
   );
 }
-// ------------------------------------------
 
 function SplitChars({
   text,
@@ -147,7 +146,7 @@ function AnimatedCounter({
 function NoiseTexture() {
   return (
     <svg
-      // Efek svg ini sangat berat, kita matikan di mobile dengan hidden md:block
+      // 🔥 PERBAIKAN: Matikan SVG beratkan di HP
       className="absolute inset-0 w-full h-full opacity-[0.035] pointer-events-none hidden md:block"
       style={{ zIndex: 1 }}
     >
@@ -272,9 +271,8 @@ export default function Hero() {
           },
         });
 
-        // Bungkus dengan matchMedia agar stacking hanya aktif di Desktop
+        // 🔥 PERBAIKAN: GSAP MatchMedia untuk Stacking Desktop saja
         let mm = gsap.matchMedia();
-
         mm.add("(min-width: 768px)", () => {
           ScrollTrigger.create({
             trigger: sectionRef.current,
@@ -282,7 +280,7 @@ export default function Hero() {
             end: "+=100%",
             pin: true,
             pinSpacing: false,
-            anticipatePin: 1, // Optimasi ekstra agar tidak ada jeda saat mengunci
+            anticipatePin: 1,
           });
         });
       }, containerRef);
@@ -310,8 +308,9 @@ export default function Hero() {
         >
           <div className="absolute inset-0 -z-10 w-full h-full">
             <div className="absolute inset-0 bg-[#0C0512]" />
+            {/* 🔥 PERBAIKAN: Blur raksasa disembunyikan di HP */}
             <div
-              className="absolute top-[-10%] right-[5%] w-[700px] h-[700px] rounded-full opacity-20"
+              className="absolute top-[-10%] right-[5%] w-[700px] h-[700px] rounded-full opacity-20 hidden md:block"
               style={{
                 background:
                   "radial-gradient(circle, #7B3FF2 0%, #4B1FA8 40%, transparent 70%)",
@@ -320,7 +319,7 @@ export default function Hero() {
               }}
             />
             <div
-              className="absolute bottom-[-15%] left-[-5%] w-[500px] h-[500px] rounded-full opacity-10"
+              className="absolute bottom-[-15%] left-[-5%] w-[500px] h-[500px] rounded-full opacity-10 hidden md:block"
               style={{
                 background:
                   "radial-gradient(circle, #C084FC 0%, #7C3AED 50%, transparent 70%)",
@@ -372,7 +371,6 @@ export default function Hero() {
                   className="mb-8 mt-3 min-h-[3rem] flex items-center"
                   style={{ opacity: 0 }}
                 >
-                  {/* MEMANGGIL KOMPONEN YANG SUDAH DIKARANTINA */}
                   <TypewriterEffect />
                 </div>
 
@@ -405,6 +403,7 @@ export default function Hero() {
                     View Work
                   </MagneticButton>
 
+                  {/* 🔥 PERBAIKAN: Ganti whileHover framer-motion dengan CSS class hover */}
                   <div className="flex items-center gap-2 ml-1 mt-4 sm:mt-0">
                     {[
                       { href: "https://github.com/idampalada", icon: Github },
@@ -418,22 +417,15 @@ export default function Hero() {
                       },
                       { href: "https://wa.me/6281287809468", icon: Phone },
                     ].map(({ href, icon: Icon }, i) => (
-                      <motion.a
+                      <a
                         key={i}
                         href={href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        whileHover={{ scale: 1.15, y: -2 }}
-                        whileTap={{ scale: 0.95 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 400,
-                          damping: 15,
-                        }}
-                        className="w-10 h-10 flex items-center justify-center rounded-full border border-purple-500/30 text-purple-400 hover:border-purple-400/60 hover:bg-purple-500/15 hover:text-purple-300 transition-colors duration-200"
+                        className="w-10 h-10 flex items-center justify-center rounded-full border border-purple-500/30 text-purple-400 hover:border-purple-400/60 hover:bg-purple-500/15 hover:text-purple-300 hover:-translate-y-1 hover:scale-110 transition-all duration-300"
                       >
                         <Icon size={16} />
-                      </motion.a>
+                      </a>
                     ))}
                   </div>
                 </div>
