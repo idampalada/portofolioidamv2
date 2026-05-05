@@ -311,7 +311,7 @@ export default function About() {
                         }}
                       />
                       <Image
-                        src="/idambatik.png"
+                        src="/idambajubatik.png"
                         alt="Idam Palada"
                         fill
                         className="object-cover object-[50%_15%]"
