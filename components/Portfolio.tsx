@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -13,15 +13,13 @@ gsap.registerPlugin(ScrollTrigger);
 
 type TabType = "projects" | "services" | "tech";
 
-// 🔥 PERBAIKAN 2: Ubah '.mp4' menjadi '.jpg' atau '.png'
-// Menghindari load 7 tag <video> sekaligus yang memakan RAM sangat besar
 const projects = [
   {
     id: 1,
     title: "Sneakersflash",
     category: "E-Commerce",
     desc: "Fashion e-commerce platform with focus on UX and application performance. End-to-end implementation from design to deployment.",
-    image: "/sneakersflash.jpg", // <--- Pastikan file gambar ini ada di folder public
+    media: "/sneakersflash.mp4",
     link: "https://sneakersflash.com/",
   },
   {
@@ -29,7 +27,7 @@ const projects = [
     title: "KJM Logistic",
     category: "Company Profile",
     desc: "Company profile website for a logistics company, enhancing professional image and digital presence.",
-    image: "/kjmlogisticc.jpg",
+    media: "/kjmlogisticc.mp4",
     link: "https://kjmlogistic.com/",
   },
   {
@@ -37,14 +35,14 @@ const projects = [
     title: "COA Campaign",
     category: "Microsite",
     desc: "Redeem code microsite designed and launched for a digital marketing campaign.",
-    image: "/coaa.jpg",
+    media: "/coaa.mp4",
   },
   {
     id: 4,
     title: "Chemkit Multi Guna",
     category: "Company Profile",
     desc: "Laboratory company profile website design for PT Chemkit Multi Guna.",
-    image: "/chemkit.jpg",
+    media: "/chemkit.mp4",
     link: "https://chemkitmultiguna.com/",
   },
   {
@@ -52,21 +50,21 @@ const projects = [
     title: "Shortlink System",
     category: "Internal Tool",
     desc: "URL shortening application with integrated security monitoring and analytics.",
-    image: "/shortlink.jpg",
+    media: "/shortlink.mp4",
   },
   {
     id: 6,
     title: "Asset Management",
     category: "Enterprise App",
     desc: "Asset management system with IoT device integration for the Ministry of Public Works.",
-    image: "/mapu.jpg",
+    media: "/mapu.mp4",
   },
   {
     id: 7,
     title: "Digital Transformation",
     category: "Gov Platform",
     desc: "Digital transformation management system for government internal operations.",
-    image: "/transformasidigital.jpg",
+    media: "/transformasidigital.mp4",
   },
 ];
 
@@ -183,9 +181,18 @@ function ProjectCard({
   index: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
+  const [hovered, setHovered] = useState(false);
 
-  // 🔥 PERBAIKAN 3: Disederhanakan karena <video> dihapus
+  useEffect(() => {
+    if (hovered) {
+      videoRef.current?.play().catch(() => {});
+    } else {
+      videoRef.current?.pause();
+    }
+  }, [hovered]);
+
   return (
     <motion.div
       ref={ref}
@@ -196,15 +203,20 @@ function ProjectCard({
         delay: (index % 3) * 0.1,
         ease: [0.22, 1, 0.36, 1],
       }}
-      // Mengandalkan pure CSS/Tailwind untuk hover (lebih enteng dari framer-motion)
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       className="group relative overflow-hidden rounded-2xl cursor-pointer bg-[rgba(255,255,255,0.025)] border border-[rgba(168,85,247,0.12)] hover:border-[rgba(168,85,247,0.4)] hover:shadow-[0_20px_60px_rgba(109,40,217,0.2)] transition-all duration-300 w-full"
     >
       <div className="relative h-[280px] md:h-[380px] overflow-hidden bg-[#0a0514]">
         <div className="w-full h-full transition-transform duration-500 group-hover:scale-105">
-          <img
-            src={project.image}
-            alt={project.title}
+          <video
+            ref={videoRef}
+            src={`${project.media}#t=0.001`}
             className="w-full h-full object-cover opacity-90 transition-opacity duration-300"
+            muted
+            loop
+            playsInline
+            preload="metadata"
           />
         </div>
         <div className="absolute top-3 left-3 z-10">
@@ -247,9 +259,17 @@ export default function Portfolio() {
   const [activeTab, setActiveTab] = useState<TabType>("projects");
   const sectionRef = useRef<HTMLElement>(null);
 
+  const [page, setPage] = useState(0);
+  const itemsPerPage = 3;
+  const totalPages = Math.ceil(projects.length / itemsPerPage);
+
+  const currentProjects = projects.slice(
+    page * itemsPerPage,
+    (page + 1) * itemsPerPage,
+  );
+
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // 🔥 PERBAIKAN 4: Karantina efek PIN hanya untuk Desktop (>768px)
       let mm = gsap.matchMedia();
 
       mm.add("(min-width: 768px)", () => {
@@ -272,129 +292,174 @@ export default function Portfolio() {
       ScrollTrigger.refresh();
     }, 600);
     return () => clearTimeout(timer);
-  }, [activeTab]);
+  }, [activeTab, page]);
 
   return (
-    <section
-      id="portfolio"
-      ref={sectionRef}
-      className="relative z-40 bg-[#0C0512] min-h-screen py-24 overflow-hidden w-full"
-      style={{
-        borderTop: "1px solid rgba(168,85,247,0.15)",
-      }}
-    >
-      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-purple-500/40 to-transparent pointer-events-none" />
+    // 🔥 PERBAIKAN: DIV BUNGKUSAN INI YANG MENYELAMATKAN DARI ERROR DOM
+    <div className="relative w-full">
+      <section
+        id="portfolio"
+        ref={sectionRef}
+        className="relative z-40 bg-[#0C0512] min-h-screen py-24 overflow-hidden w-full"
+        style={{
+          borderTop: "1px solid rgba(168,85,247,0.15)",
+        }}
+      >
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-purple-500/40 to-transparent pointer-events-none" />
 
-      {/* Sembunyikan Blur Background raksasa ini di Mobile */}
-      <div className="absolute inset-0 -z-10 pointer-events-none w-full h-full hidden md:block">
-        <div
-          className="absolute top-[20%] right-[-10%] w-[600px] h-[600px] rounded-full"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(109,40,217,0.06) 0%, transparent 70%)",
-            filter: "blur(100px)",
-            willChange: "transform, filter",
-          }}
-        />
-      </div>
-
-      <div className="max-w-[1320px] w-full mx-auto px-6 md:px-10 lg:px-16 relative z-10">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="h-px w-12 bg-purple-500" />
-          <span className="text-purple-400 text-xs tracking-[0.25em] uppercase font-medium">
-            Work
-          </span>
+        <div className="absolute inset-0 -z-10 pointer-events-none w-full h-full hidden md:block">
+          <div
+            className="absolute top-[20%] right-[-10%] w-[600px] h-[600px] rounded-full"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(109,40,217,0.06) 0%, transparent 70%)",
+              filter: "blur(100px)",
+              willChange: "transform, filter",
+            }}
+          />
         </div>
 
-        <div className="mb-14 w-full">
-          <h2 className="text-[clamp(40px,8vw,100px)] font-black leading-[0.9] tracking-tight">
-            <span className="text-white">Selected </span>
-            <span
-              className="text-transparent"
-              style={{ WebkitTextStroke: "1px rgba(168,85,247,0.4)" }}
-            >
-              Projects
+        <div className="max-w-[1320px] w-full mx-auto px-6 md:px-10 lg:px-16 relative z-10">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="h-px w-12 bg-purple-500" />
+            <span className="text-purple-400 text-xs tracking-[0.25em] uppercase font-medium">
+              Work
             </span>
-          </h2>
-        </div>
+          </div>
 
-        <div className="flex justify-center mb-16 w-full">
-          <div className="flex gap-1 p-1.5 rounded-full bg-white/[0.03] border border-white/10 backdrop-blur-md overflow-x-auto max-w-full no-scrollbar">
-            {(["projects", "services", "tech"] as const).map((key) => (
-              <TabBtn
-                key={key}
-                active={activeTab === key}
-                onClick={() => setActiveTab(key)}
+          <div className="mb-14 w-full">
+            <h2 className="text-[clamp(40px,8vw,100px)] font-black leading-[0.9] tracking-tight">
+              <span className="text-white">Selected </span>
+              <span
+                className="text-transparent"
+                style={{ WebkitTextStroke: "1px rgba(168,85,247,0.4)" }}
               >
-                {key.charAt(0).toUpperCase() + key.slice(1)}
-              </TabBtn>
-            ))}
+                Projects
+              </span>
+            </h2>
+          </div>
+
+          <div className="flex justify-center mb-16 w-full">
+            <div className="flex gap-1 p-1.5 rounded-full bg-white/[0.03] border border-white/10 backdrop-blur-md overflow-x-auto max-w-full no-scrollbar">
+              {(["projects", "services", "tech"] as const).map((key) => (
+                <TabBtn
+                  key={key}
+                  active={activeTab === key}
+                  onClick={() => {
+                    setActiveTab(key);
+                    setPage(0);
+                  }}
+                >
+                  {key.charAt(0).toUpperCase() + key.slice(1)}
+                </TabBtn>
+              ))}
+            </div>
+          </div>
+
+          <div className="relative min-h-[600px] w-full">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${activeTab}-${page}`}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -30 }}
+                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                className="w-full"
+              >
+                {activeTab === "projects" && (
+                  <div className="w-full flex flex-col items-center">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
+                      {currentProjects.map((project, i) => (
+                        <ProjectCard
+                          key={project.id}
+                          project={project}
+                          index={i}
+                        />
+                      ))}
+                    </div>
+
+                    {totalPages > 1 && (
+                      <div className="mt-14 flex items-center gap-4">
+                        <button
+                          onClick={() => setPage((p) => Math.max(0, p - 1))}
+                          disabled={page === 0}
+                          className="w-10 h-10 flex items-center justify-center rounded-full border border-purple-500/30 text-purple-400 hover:bg-purple-500/15 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        >
+                          <ChevronLeft size={18} />
+                        </button>
+                        <div className="flex gap-2">
+                          {Array.from({ length: totalPages }).map((_, i) => (
+                            <button
+                              key={i}
+                              onClick={() => setPage(i)}
+                              className={`w-2.5 h-2.5 rounded-full transition-all ${
+                                i === page
+                                  ? "bg-purple-500 scale-125"
+                                  : "bg-purple-500/30 hover:bg-purple-500/60"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <button
+                          onClick={() =>
+                            setPage((p) => Math.min(totalPages - 1, p + 1))
+                          }
+                          disabled={page === totalPages - 1}
+                          className="w-10 h-10 flex items-center justify-center rounded-full border border-purple-500/30 text-purple-400 hover:bg-purple-500/15 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        >
+                          <ChevronRight size={18} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === "services" && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+                    {services.map((service, i) => (
+                      <div
+                        key={i}
+                        className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-purple-500/30 transition-all w-full"
+                      >
+                        <div className="text-2xl mb-4 text-purple-500">
+                          {service.icon}
+                        </div>
+                        <h4 className="text-white font-bold mb-2">
+                          {service.label}
+                        </h4>
+                        <p className="text-gray-500 text-sm">{service.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {activeTab === "tech" && (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 w-full">
+                    {techStack.map((tech, i) => (
+                      <div
+                        key={i}
+                        className="flex flex-col items-center justify-center p-6 rounded-2xl bg-white/[0.02] border border-white/5 aspect-square hover:bg-purple-500/5 transition-all group w-full"
+                      >
+                        <div className="w-12 h-12 relative mb-3 grayscale group-hover:grayscale-0 transition-all duration-500">
+                          <Image
+                            src={tech.src}
+                            alt={tech.name}
+                            fill
+                            className="object-contain"
+                          />
+                        </div>
+                        <span className="text-[10px] text-gray-500 uppercase tracking-widest text-center">
+                          {tech.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
-
-        <div className="relative min-h-[600px] w-full">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -30 }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="w-full"
-            >
-              {activeTab === "projects" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
-                  {projects.map((project, i) => (
-                    <ProjectCard key={project.id} project={project} index={i} />
-                  ))}
-                </div>
-              )}
-
-              {activeTab === "services" && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-                  {services.map((service, i) => (
-                    <div
-                      key={i}
-                      className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-purple-500/30 transition-all w-full"
-                    >
-                      <div className="text-2xl mb-4 text-purple-500">
-                        {service.icon}
-                      </div>
-                      <h4 className="text-white font-bold mb-2">
-                        {service.label}
-                      </h4>
-                      <p className="text-gray-500 text-sm">{service.desc}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {activeTab === "tech" && (
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 w-full">
-                  {techStack.map((tech, i) => (
-                    <div
-                      key={i}
-                      className="flex flex-col items-center justify-center p-6 rounded-2xl bg-white/[0.02] border border-white/5 aspect-square hover:bg-purple-500/5 transition-all group w-full"
-                    >
-                      <div className="w-12 h-12 relative mb-3 grayscale group-hover:grayscale-0 transition-all duration-500">
-                        <Image
-                          src={tech.src}
-                          alt={tech.name}
-                          fill
-                          className="object-contain"
-                        />
-                      </div>
-                      <span className="text-[10px] text-gray-500 uppercase tracking-widest text-center">
-                        {tech.name}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 }
