@@ -40,8 +40,8 @@ export default function LenisProvider({
           height: window.innerHeight,
         };
       },
-      // "transform" bukan "fixed" — Lenis pakai transform untuk smooth scroll
-      pinType: "transform",
+      // PERBAIKAN: "fixed" untuk HP (lebih ringan), "transform" untuk Desktop (lebih smooth)
+      pinType: window.innerWidth < 768 ? "fixed" : "transform",
     });
 
     lenis.on("scroll", () => ScrollTrigger.update());

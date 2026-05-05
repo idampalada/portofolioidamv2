@@ -276,12 +276,18 @@ export default function Portfolio() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      ScrollTrigger.create({
-        trigger: sectionRef.current,
-        start: "bottom bottom",
-        end: () => "+=" + window.innerHeight,
-        pin: true,
-        pinSpacing: false,
+      // PERBAIKAN: Karantina efek stacking agar cuma jalan di Desktop
+      let mm = gsap.matchMedia();
+
+      mm.add("(min-width: 768px)", () => {
+        ScrollTrigger.create({
+          trigger: sectionRef.current,
+          start: "bottom bottom",
+          end: () => "+=" + window.innerHeight,
+          pin: true,
+          pinSpacing: false,
+          anticipatePin: 1, // Optimasi ekstra agar tidak ada jeda patah saat mengunci
+        });
       });
     }, sectionRef);
 
@@ -299,25 +305,26 @@ export default function Portfolio() {
     <section
       id="portfolio"
       ref={sectionRef}
-      className="relative z-40 bg-[#0C0512] min-h-screen py-24 overflow-hidden"
+      className="relative z-40 bg-[#0C0512] min-h-screen py-24 overflow-hidden w-full"
       style={{
         borderTop: "1px solid rgba(168,85,247,0.15)",
       }}
     >
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-purple-500/40 to-transparent pointer-events-none" />
 
-      <div className="absolute inset-0 -z-10 pointer-events-none">
+      <div className="absolute inset-0 -z-10 pointer-events-none w-full h-full">
         <div
           className="absolute top-[20%] right-[-10%] w-[600px] h-[600px] rounded-full"
           style={{
             background:
               "radial-gradient(circle, rgba(109,40,217,0.06) 0%, transparent 70%)",
             filter: "blur(100px)",
+            willChange: "transform, filter",
           }}
         />
       </div>
 
-      <div className="max-w-[1320px] mx-auto px-6 md:px-10 lg:px-16 relative z-10">
+      <div className="max-w-[1320px] w-full mx-auto px-6 md:px-10 lg:px-16 relative z-10">
         <div className="flex items-center gap-4 mb-6">
           <div className="h-px w-12 bg-purple-500" />
           <span className="text-purple-400 text-xs tracking-[0.25em] uppercase font-medium">
@@ -325,7 +332,7 @@ export default function Portfolio() {
           </span>
         </div>
 
-        <div className="mb-14">
+        <div className="mb-14 w-full">
           <h2 className="text-[clamp(40px,8vw,100px)] font-black leading-[0.9] tracking-tight">
             <span className="text-white">Selected </span>
             <span
@@ -337,8 +344,8 @@ export default function Portfolio() {
           </h2>
         </div>
 
-        <div className="flex justify-center mb-16">
-          <div className="flex gap-1 p-1.5 rounded-full bg-white/[0.03] border border-white/10 backdrop-blur-md">
+        <div className="flex justify-center mb-16 w-full">
+          <div className="flex gap-1 p-1.5 rounded-full bg-white/[0.03] border border-white/10 backdrop-blur-md overflow-x-auto max-w-full no-scrollbar">
             {(["projects", "services", "tech"] as const).map((key) => (
               <TabBtn
                 key={key}
@@ -351,7 +358,7 @@ export default function Portfolio() {
           </div>
         </div>
 
-        <div className="relative min-h-[600px]">
+        <div className="relative min-h-[600px] w-full">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -361,7 +368,7 @@ export default function Portfolio() {
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             >
               {activeTab === "projects" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
                   {projects.map((project, i) => (
                     <ProjectCard key={project.id} project={project} index={i} />
                   ))}
@@ -369,11 +376,11 @@ export default function Portfolio() {
               )}
 
               {activeTab === "services" && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
                   {services.map((service, i) => (
                     <div
                       key={i}
-                      className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-purple-500/30 transition-all"
+                      className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-purple-500/30 transition-all w-full"
                     >
                       <div className="text-2xl mb-4 text-purple-500">
                         {service.icon}
@@ -388,11 +395,11 @@ export default function Portfolio() {
               )}
 
               {activeTab === "tech" && (
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 w-full">
                   {techStack.map((tech, i) => (
                     <div
                       key={i}
-                      className="flex flex-col items-center justify-center p-6 rounded-2xl bg-white/[0.02] border border-white/5 aspect-square hover:bg-purple-500/5 transition-all group"
+                      className="flex flex-col items-center justify-center p-6 rounded-2xl bg-white/[0.02] border border-white/5 aspect-square hover:bg-purple-500/5 transition-all group w-full"
                     >
                       <div className="w-12 h-12 relative mb-3 grayscale group-hover:grayscale-0 transition-all duration-500">
                         <Image
@@ -402,7 +409,7 @@ export default function Portfolio() {
                           className="object-contain"
                         />
                       </div>
-                      <span className="text-[10px] text-gray-500 uppercase tracking-widest">
+                      <span className="text-[10px] text-gray-500 uppercase tracking-widest text-center">
                         {tech.name}
                       </span>
                     </div>

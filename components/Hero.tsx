@@ -166,8 +166,6 @@ function NoiseTexture() {
 }
 
 export default function Hero() {
-  // State ngetik sudah kita hapus dari sini karena dipindah ke TypewriterEffect
-
   const containerRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -274,12 +272,18 @@ export default function Hero() {
           },
         });
 
-        ScrollTrigger.create({
-          trigger: sectionRef.current,
-          start: "bottom bottom",
-          end: "+=100%",
-          pin: true,
-          pinSpacing: false,
+        // Bungkus dengan matchMedia agar stacking hanya aktif di Desktop
+        let mm = gsap.matchMedia();
+
+        mm.add("(min-width: 768px)", () => {
+          ScrollTrigger.create({
+            trigger: sectionRef.current,
+            start: "bottom bottom",
+            end: "+=100%",
+            pin: true,
+            pinSpacing: false,
+            anticipatePin: 1, // Optimasi ekstra agar tidak ada jeda saat mengunci
+          });
         });
       }, containerRef);
 

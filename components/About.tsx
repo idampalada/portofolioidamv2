@@ -153,12 +153,17 @@ export default function About() {
           },
         );
 
-        ScrollTrigger.create({
-          trigger: sectionRef.current,
-          start: "bottom bottom",
-          end: "+=100%",
-          pin: true,
-          pinSpacing: false,
+        // Karantina fitur PIN hanya untuk Desktop/Tablet (>768px)
+        let mm = gsap.matchMedia();
+        mm.add("(min-width: 768px)", () => {
+          ScrollTrigger.create({
+            trigger: sectionRef.current,
+            start: "bottom bottom",
+            end: "+=100%",
+            pin: true,
+            pinSpacing: false,
+            anticipatePin: 1,
+          });
         });
       }, containerRef);
 
@@ -169,13 +174,11 @@ export default function About() {
   }, []);
 
   return (
-    // PERBAIKAN 1: Tambahkan w-full overflow-hidden di pembungkus paling luar
     <div
       ref={containerRef}
       id="about"
       className="relative z-20 bg-[#0C0512] w-full overflow-hidden"
     >
-      {/* PERBAIKAN 2: Tambahkan w-full agar saat di-pin GSAP, ukurannya tidak melar */}
       <section ref={sectionRef} className="relative w-full">
         <div
           id="about-inner-wrapper"
@@ -194,6 +197,7 @@ export default function About() {
                 background:
                   "radial-gradient(circle, rgba(124,58,237,0.2) 0%, transparent 70%)",
                 filter: "blur(80px)",
+                willChange: "transform, filter",
               }}
               className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full pointer-events-none"
             />
@@ -304,7 +308,6 @@ export default function About() {
                     />
                   </motion.div>
 
-                  {/* PERBAIKAN 3: Kotak Quote dikalibrasi agar tidak lompat keluar layar HP */}
                   <motion.div
                     className="absolute bottom-[-16px] right-[0px] md:right-[-20px] lg:right-[-40px] max-w-[180px] md:max-w-[200px] z-20"
                     initial={{ opacity: 0, y: 20, scale: 0.9 }}
@@ -341,7 +344,6 @@ export default function About() {
                 </motion.div>
               </div>
 
-              {/* PERBAIKAN 4: Penambahan w-full untuk membatasi ruang bio */}
               <div className="col-span-12 lg:col-span-7 min-w-0 w-full">
                 <RevealLine
                   delay={0.15}
@@ -418,7 +420,6 @@ export default function About() {
               </div>
             </div>
 
-            {/* PERBAIKAN 5: Biang kerok diamankan dengan w-full overflow-hidden */}
             <div className="mt-28 w-full overflow-hidden">
               <motion.div
                 initial={{ opacity: 0 }}

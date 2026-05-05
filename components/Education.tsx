@@ -241,11 +241,8 @@ export default function Education() {
   const glowY = useTransform(scrollYProgress, [0, 1], ["-8%", "8%"]);
 
   useEffect(() => {
-    // Timeout untuk memastikan DOM sudah siap sebelum GSAP jalan
     const timer = setTimeout(() => {
-      // Gunakan containerRef sebagai scope agar GSAP tidak berkonflik dengan React
       const ctx = gsap.context(() => {
-        // Animasi flattening border radius saat discroll
         gsap.fromTo(
           innerWrapperRef.current,
           { borderRadius: "2.5rem 2.5rem 0 0" },
@@ -261,13 +258,17 @@ export default function Education() {
           },
         );
 
-        // Kunci (Pin) section Education saat mencapai bawah
-        ScrollTrigger.create({
-          trigger: sectionRef.current,
-          start: "bottom bottom",
-          end: "+=100%",
-          pin: true,
-          pinSpacing: false, // Memastikan elemen selanjutnya (Portfolio) bisa menimpa
+        // Karantina fitur PIN hanya untuk Desktop/Tablet (>768px)
+        let mm = gsap.matchMedia();
+        mm.add("(min-width: 768px)", () => {
+          ScrollTrigger.create({
+            trigger: sectionRef.current,
+            start: "bottom bottom",
+            end: "+=100%",
+            pin: true,
+            pinSpacing: false,
+            anticipatePin: 1,
+          });
         });
       }, containerRef);
 
@@ -278,7 +279,6 @@ export default function Education() {
   }, []);
 
   return (
-    // DIV PEMBUNGKUS untuk menghindari error "removeChild"
     <div
       ref={containerRef}
       id="education"
@@ -311,6 +311,7 @@ export default function Education() {
                 background:
                   "radial-gradient(circle, rgba(109,40,217,0.12) 0%, transparent 70%)",
                 filter: "blur(80px)",
+                willChange: "transform, filter",
               }}
               className="absolute right-[-10%] top-[20%] w-[600px] h-[600px] rounded-full pointer-events-none"
             />
@@ -346,14 +347,11 @@ export default function Education() {
             </div>
 
             {/* Heading */}
-            {/* 1. Hapus class 'overflow-hidden' dari div pembungkus ini */}
-            <div className="mb-16 md:mb-20">
+            <div className="mb-16 md:mb-20 overflow-hidden">
               <motion.h2
-                // 2. Ubah persentase menjadi pixel agar tidak terpotong ke bawah terlalu jauh
-                initial={{ y: 40, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                // 3. Tambahkan margin negatif agar animasi terpicu lebih awal saat di-scroll
-                viewport={{ once: true, margin: "-50px" }}
+                initial={{ y: "105%", opacity: 0 }}
+                whileInView={{ y: "0%", opacity: 1 }}
+                viewport={{ once: true }}
                 transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
                 className="text-[clamp(40px,8vw,90px)] font-black leading-[0.9] tracking-tight"
               >
