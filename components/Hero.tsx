@@ -171,7 +171,6 @@ export default function Hero() {
   useEffect(() => {
     const timer = setTimeout(() => {
       const ctx = gsap.context(() => {
-        // Animasi masuk (Fade In, dll)
         const chars =
           nameLineRef.current?.querySelectorAll(".split-char") ?? [];
         gsap.set(heroDimRef.current, { opacity: 0 });
@@ -214,7 +213,6 @@ export default function Hero() {
             0.4,
           );
 
-        // Animasi rotasi dekorasi
         gsap.to(orbitRef.current, {
           rotate: 360,
           duration: 28,
@@ -222,7 +220,6 @@ export default function Hero() {
           repeat: -1,
         });
 
-        // Animasi gambar melayang
         gsap.to(imgRef.current, {
           y: -16,
           duration: 4,
@@ -232,7 +229,6 @@ export default function Hero() {
           delay: 2,
         });
 
-        // Animasi statistik
         gsap.from(statsRef.current, {
           opacity: 0,
           y: 40,
@@ -246,12 +242,11 @@ export default function Hero() {
           },
         });
 
-        // 1. Animasi menggelap & mengecil saat discroll
         ScrollTrigger.create({
           trigger: sectionRef.current,
           scroller: document.documentElement,
           start: "top top",
-          end: "+=100%", // Seberapa jauh efek ini bertahan
+          end: "+=100%",
           scrub: 1,
           onUpdate: (self) => {
             const p = self.progress;
@@ -265,15 +260,14 @@ export default function Hero() {
           },
         });
 
-        // 2. Kunci (Pin) section Hero agar bisa tertimpa oleh About
         ScrollTrigger.create({
           trigger: sectionRef.current,
           start: "bottom bottom",
-          end: "+=100%", // Tetap terkunci cukup lama agar sempat tertimpa
+          end: "+=100%",
           pin: true,
-          pinSpacing: false, // Penting agar elemen selanjutnya (About) bisa naik menimpa
+          pinSpacing: false,
         });
-      }, containerRef); // Scope diatur ke containerRef
+      }, containerRef);
 
       return () => ctx.revert();
     }, 100);
@@ -287,14 +281,18 @@ export default function Hero() {
   const imgSpringY = useSpring(imgY, { stiffness: 120, damping: 22 });
 
   return (
-    // PENTING: id="hero" dipindahkan ke sini
     <div ref={containerRef} id="hero" className="relative z-10 bg-[#0C0512]">
+      {/* DI SINI PERBAIKANNYA: memastikan section membesar flex */}
       <section
-        ref={sectionRef} // id="hero" dihapus dari sini
-        className="relative overflow-hidden min-h-screen"
+        ref={sectionRef}
+        className="relative overflow-hidden min-h-screen flex flex-col w-full"
       >
-        <div ref={cardRef} className="absolute inset-0">
-          <div className="absolute inset-0 -z-10">
+        {/* PERBAIKAN: ubah absolute inset-0 jadi relative flex-1 */}
+        <div
+          ref={cardRef}
+          className="relative w-full flex-1 flex flex-col min-h-screen"
+        >
+          <div className="absolute inset-0 -z-10 w-full h-full">
             <div className="absolute inset-0 bg-[#0C0512]" />
             <div
               className="absolute top-[-10%] right-[5%] w-[700px] h-[700px] rounded-full opacity-20"
@@ -323,8 +321,9 @@ export default function Hero() {
             />
           </div>
 
-          <div className="max-w-[1320px] mx-auto px-6 md:px-10 lg:px-16 h-full flex flex-col">
-            <div className="grid grid-cols-12 gap-8 lg:gap-0 items-center flex-1 py-12 md:py-0">
+          <div className="max-w-[1320px] w-full mx-auto px-6 md:px-10 lg:px-16 flex-1 flex flex-col justify-center">
+            {/* PERBAIKAN: Menambahkan pt-28 untuk memberi ruang Navbar di HP agar teks tidak tertutup */}
+            <div className="grid grid-cols-12 gap-8 lg:gap-0 items-center flex-1 pt-28 pb-12 md:py-0">
               <div className="col-span-12 lg:col-span-6 z-10">
                 <p
                   ref={greetingRef}
@@ -391,7 +390,7 @@ export default function Hero() {
                     View Work
                   </MagneticButton>
 
-                  <div className="flex items-center gap-2 ml-1">
+                  <div className="flex items-center gap-2 ml-1 mt-4 sm:mt-0">
                     {[
                       { href: "https://github.com/idampalada", icon: Github },
                       {
@@ -425,7 +424,7 @@ export default function Hero() {
                 </div>
               </div>
 
-              <div className="col-span-12 lg:col-span-6 flex justify-center lg:justify-end z-10 mt-16 lg:mt-0">
+              <div className="col-span-12 lg:col-span-6 flex justify-center lg:justify-end z-10 mt-16 lg:mt-0 pb-12">
                 <div
                   className="relative"
                   onMouseMove={(e) => {
@@ -561,7 +560,7 @@ export default function Hero() {
 
             <div
               ref={statsRef}
-              className="pb-10 md:pb-14 mt-auto relative z-10"
+              className="pb-20 md:pb-14 mt-auto relative z-10 w-full"
             >
               <div className="w-full h-px bg-gradient-to-r from-transparent via-purple-800/50 to-transparent mb-10" />
               <div className="flex flex-col md:flex-row items-center justify-between gap-10 md:gap-0">
@@ -595,7 +594,7 @@ export default function Hero() {
                     <div className="text-gray-600 text-xs">{sub}</div>
                   </div>
                 ))}
-                <div className="text-center md:text-right">
+                <div className="text-center md:text-right mt-6 md:mt-0">
                   <p className="text-gray-500 text-xs uppercase tracking-widest mb-3">
                     Trusted by
                   </p>
