@@ -9,6 +9,42 @@ import { motion, useMotionValue, useSpring } from "framer-motion";
 
 gsap.registerPlugin(ScrollTrigger);
 
+// --- KOMPONEN BARU: Karantina Efek Ketik ---
+function TypewriterEffect() {
+  const roles = ["Fullstack Developer", "Backend Engineer", "UI/UX Designer"];
+  const [roleIdx, setRoleIdx] = useState(0);
+  const [typed, setTyped] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    const cur = roles[roleIdx];
+    const speed = deleting ? 40 : 90;
+    const t = setTimeout(() => {
+      if (!deleting) {
+        const next = cur.slice(0, typed.length + 1);
+        setTyped(next);
+        if (next === cur) setTimeout(() => setDeleting(true), 1800);
+      } else {
+        const next = cur.slice(0, typed.length - 1);
+        setTyped(next);
+        if (next === "") {
+          setDeleting(false);
+          setRoleIdx((i) => (i + 1) % roles.length);
+        }
+      }
+    }, speed);
+    return () => clearTimeout(t);
+  }, [typed, deleting, roleIdx, roles]);
+
+  return (
+    <span className="text-[clamp(18px,3vw,28px)] font-light tracking-wide bg-gradient-to-r from-purple-300 via-fuchsia-300 to-purple-400 bg-clip-text text-transparent">
+      {typed}
+      <span className="text-purple-300 animate-pulse">|</span>
+    </span>
+  );
+}
+// ------------------------------------------
+
 function SplitChars({
   text,
   className,
@@ -111,7 +147,8 @@ function AnimatedCounter({
 function NoiseTexture() {
   return (
     <svg
-      className="absolute inset-0 w-full h-full opacity-[0.035] pointer-events-none"
+      // Efek svg ini sangat berat, kita matikan di mobile dengan hidden md:block
+      className="absolute inset-0 w-full h-full opacity-[0.035] pointer-events-none hidden md:block"
       style={{ zIndex: 1 }}
     >
       <filter id="noise">
@@ -129,10 +166,7 @@ function NoiseTexture() {
 }
 
 export default function Hero() {
-  const roles = ["Fullstack Developer", "Backend Engineer", "UI/UX Designer"];
-  const [roleIdx, setRoleIdx] = useState(0);
-  const [typed, setTyped] = useState("");
-  const [deleting, setDeleting] = useState(false);
+  // State ngetik sudah kita hapus dari sini karena dipindah ke TypewriterEffect
 
   const containerRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
@@ -147,26 +181,6 @@ export default function Hero() {
   const orbitRef = useRef<HTMLDivElement>(null);
   const lineRef = useRef<HTMLDivElement>(null);
   const heroDimRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const cur = roles[roleIdx];
-    const speed = deleting ? 40 : 90;
-    const t = setTimeout(() => {
-      if (!deleting) {
-        const next = cur.slice(0, typed.length + 1);
-        setTyped(next);
-        if (next === cur) setTimeout(() => setDeleting(true), 1800);
-      } else {
-        const next = cur.slice(0, typed.length - 1);
-        setTyped(next);
-        if (next === "") {
-          setDeleting(false);
-          setRoleIdx((i) => (i + 1) % roles.length);
-        }
-      }
-    }, speed);
-    return () => clearTimeout(t);
-  }, [typed, deleting, roleIdx]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -282,12 +296,10 @@ export default function Hero() {
 
   return (
     <div ref={containerRef} id="hero" className="relative z-10 bg-[#0C0512]">
-      {/* DI SINI PERBAIKANNYA: memastikan section membesar flex */}
       <section
         ref={sectionRef}
         className="relative overflow-hidden min-h-screen flex flex-col w-full"
       >
-        {/* PERBAIKAN: ubah absolute inset-0 jadi relative flex-1 */}
         <div
           ref={cardRef}
           className="relative w-full flex-1 flex flex-col min-h-screen"
@@ -300,6 +312,7 @@ export default function Hero() {
                 background:
                   "radial-gradient(circle, #7B3FF2 0%, #4B1FA8 40%, transparent 70%)",
                 filter: "blur(60px)",
+                willChange: "transform, filter",
               }}
             />
             <div
@@ -308,6 +321,7 @@ export default function Hero() {
                 background:
                   "radial-gradient(circle, #C084FC 0%, #7C3AED 50%, transparent 70%)",
                 filter: "blur(80px)",
+                willChange: "transform, filter",
               }}
             />
             <NoiseTexture />
@@ -322,7 +336,6 @@ export default function Hero() {
           </div>
 
           <div className="max-w-[1320px] w-full mx-auto px-6 md:px-10 lg:px-16 flex-1 flex flex-col justify-center">
-            {/* PERBAIKAN: Menambahkan pt-28 untuk memberi ruang Navbar di HP agar teks tidak tertutup */}
             <div className="grid grid-cols-12 gap-8 lg:gap-0 items-center flex-1 pt-28 pb-12 md:py-0">
               <div className="col-span-12 lg:col-span-6 z-10">
                 <p
@@ -355,10 +368,8 @@ export default function Hero() {
                   className="mb-8 mt-3 min-h-[3rem] flex items-center"
                   style={{ opacity: 0 }}
                 >
-                  <span className="text-[clamp(18px,3vw,28px)] font-light tracking-wide bg-gradient-to-r from-purple-300 via-fuchsia-300 to-purple-400 bg-clip-text text-transparent">
-                    {typed}
-                    <span className="text-purple-300 animate-pulse">|</span>
-                  </span>
+                  {/* MEMANGGIL KOMPONEN YANG SUDAH DIKARANTINA */}
+                  <TypewriterEffect />
                 </div>
 
                 <p
